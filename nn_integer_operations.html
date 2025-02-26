@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Integer Operations in TVM-TFHE</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+            --python-keyword: #cc7832;
+            --python-string: #6a8759;
+            --python-comment: #808080;
+            --cpp-keyword: #cc7832;
+            --cpp-type: #a9b7c6;
+            --cpp-string: #6a8759;
+            --cpp-comment: #808080;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        /* Python syntax highlighting */
+        .python .keyword { color: var(--python-keyword); }
+        .python .string { color: var(--python-string); }
+        .python .comment { color: var(--python-comment); }
+        .python .function { color: #ffc66d; }
+        .python .class { color: #a9b7c6; }
+        .python .number { color: #6897bb; }
+
+        /* C++ syntax highlighting */
+        .cpp .keyword { color: var(--cpp-keyword); }
+        .cpp .type { color: var(--cpp-type); }
+        .cpp .string { color: var(--cpp-string); }
+        .cpp .comment { color: var(--cpp-comment); }
+        .cpp .function { color: #ffc66d; }
+        .cpp .number { color: #6897bb; }
+
+        /* Performance metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .metric-card {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            margin: 0.5rem 0;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#quantization">1. Quantization Strategies</a>
+                <ul>
+                    <li><a href="#weight-quant">Weight Quantization</a></li>
+                    <li><a href="#matrix-quant">Matrix Operation Quantization</a></li>
+                    <li><a href="#tvm-impl">TVM Implementation</a></li>
+                </ul>
+            </li>
+            <li><a href="#activation">2. Activation Function Approximations</a>
+                <ul>
+                    <li><a href="#relu">ReLU Approximation</a></li>
+                    <li><a href="#sigmoid">Sigmoid Approximation</a></li>
+                    <li><a href="#softmax">Softmax Approximation</a></li>
+                </ul>
+            </li>
+            <li><a href="#operators">3. TVM Integer Operator Implementation</a>
+                <ul>
+                    <li><a href="#basic-ops">Basic Operators</a></li>
+                    <li><a href="#matrix-ops">Matrix Operations</a></li>
+                    <li><a href="#custom-ops">Custom Operators</a></li>
+                </ul>
+            </li>
+            <li><a href="#examples">Implementation Examples</a>
+                <ul>
+                    <li><a href="#linear">Linear Layer</a></li>
+                    <li><a href="#conv">Convolution Layer</a></li>
+                    <li><a href="#activations">Activation Functions</a></li>
+                </ul>
+            </li>
+            <li><a href="#performance">Performance Considerations</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Neural Network Integer Operations in TVM-TFHE</h1>
+
+        <section id="quantization">
+            <h2>1. Quantization Strategies</h2>
+
+            <section id="weight-quant">
+                <h3>Weight Quantization</h3>
+                <pre data-language="Python" class="python"><code>class WeightQuantization:
+    def __init__(self, scale_factor=1<<10):
+        self.scale = scale_factor
+        
+    def quantize_weights(self, weights: np.ndarray) -> np.ndarray:
+        """
+        Quantize floating point weights to integers
+        - Scale weights by 2^10 (or other power of 2)
+        - Round to nearest integer
+        - Preserve sign
+        """
+        return np.round(weights * self.scale).astype(np.int32)
+    
+    def quantize_layer(self, layer_weights: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+        """
+        Quantize entire layer's weights
+        - Handle different parameter types
+        - Maintain scale consistency
+        - Track quantization parameters
+        """
+        return {
+            name: self.quantize_weights(weights)
+            for name, weights in layer_weights.items()
+        }</code></pre>
+            </section>
+
+            <section id="matrix-quant">
+                <h3>Matrix Operation Quantization</h3>
+                <pre data-language="C++" class="cpp"><code>class MatrixQuantization {
+public:
+    struct QuantParams {
+        int32_t scale;
+        int32_t zero_point;
+        int32_t clip_min;
+        int32_t clip_max;
+    };
+    
+    // Quantize matrix multiplication
+    TFHEIntegerTensor QuantizedMatMul(
+        const TFHEIntegerTensor& A,
+        const TFHEIntegerTensor& B,
+        const QuantParams& params
+    ) {
+        // Scale input tensors
+        auto scaled_A = Scale(A, params.scale);
+        auto scaled_B = Scale(B, params.scale);
+        
+        // Perform integer multiplication
+        auto result = MatMul(scaled_A, scaled_B);
+        
+        // Rescale result
+        return Rescale(result, params.scale);
+    }</code></pre>
+            </section>
+        </section>
+
+            <section id="tvm-impl">
+                <h3>TVM Implementation</h3>
+                <pre data-language="Python" class="python"><code>def register_quantized_matmul():
+    """Register quantized matrix multiplication with TVM"""
+    return tvm.op.register_op("tfhe.quantized.matmul")(
+        compute=lambda A, B, scale: tvm.compute(
+            (A.shape[0], B.shape[1]),
+            lambda i, j: quantized_dot_product(A[i,:], B[:,j], scale),
+            name="quantized_matmul"
+        )
+    )
+
+def quantized_dot_product(a, b, scale):
+    """
+    Integer dot product with scaling
+    - Maintain precision
+    - Handle overflow
+    - Optimize computation
+    """
+    return tvm.sum(a * b) // scale</code></pre>
+            </section>
+        </section>
+
+        <section id="activation">
+            <h2>2. Activation Function Approximations</h2>
+
+            <section id="relu">
+                <h3>ReLU Approximation</h3>
+                <pre data-language="Python" class="python"><code>class IntegerReLU:
+    def __init__(self, bits=32):
+        self.max_val = (1 << (bits-1)) - 1
+        
+    def approximate(self, x: TFHEInteger) -> TFHEInteger:
+        """
+        Integer ReLU approximation
+        - Preserve sign bit
+        - Handle overflow
+        - Maintain precision
+        """
+        return tvm.compute(
+            x.shape,
+            lambda *i: tvm.max(0, tvm.min(x[i], self.max_val))
+        )</code></pre>
+            </section>
+
+            <section id="sigmoid">
+                <h3>Sigmoid Approximation</h3>
+                <pre data-language="C++" class="cpp"><code>class IntegerSigmoid {
+public:
+    struct Params {
+        int32_t input_scale;
+        int32_t output_scale;
+        int32_t lookup_size;
+    };
+    
+    TFHEInteger ApproximateSigmoid(
+        const TFHEInteger& x,
+        const Params& params
+    ) {
+        // Piece-wise linear approximation
+        auto scaled_x = Scale(x, params.input_scale);
+        auto result = PiecewiseApprox(scaled_x);
+        return Rescale(result, params.output_scale);
+    }
+    
+private:
+    TFHEInteger PiecewiseApprox(const TFHEInteger& x) {
+        // Linear piece-wise approximation
+        // Use lookup table for efficiency
+        // Handle boundary conditions
+    }
+};</code></pre>
+            </section>
+
+            <section id="softmax">
+                <h3>Softmax Approximation</h3>
+                <pre data-language="Python" class="python"><code>class IntegerSoftmax:
+    def __init__(self, scale_factor=1<<10):
+        self.scale = scale_factor
+        
+    def approximate(self, x: TFHEIntegerTensor) -> TFHEIntegerTensor:
+        """
+        Integer softmax approximation
+        1. Shift to prevent overflow
+        2. Exponential approximation
+        3. Integer division for normalization
+        """
+        # Shift values
+        max_val = tvm.max(x)
+        shifted = x - max_val
+        
+        # Approximate exp
+        scaled_exp = self.approximate_exp(shifted)
+        
+        # Normalize
+        sum_exp = tvm.sum(scaled_exp)
+        return scaled_exp * self.scale // sum_exp
+    
+    def approximate_exp(self, x: TFHEInteger) -> TFHEInteger:
+        """
+        Integer exponential approximation
+        - Piece-wise linear approximation
+        - Lookup table for common values
+        - Handle overflow
+        """
+        # Implementation details</code></pre>
+            </section>
+        </section>
+
+        <section id="operators">
+            <h2>3. TVM Integer Operator Implementation</h2>
+
+            <section id="basic-ops">
+                <h3>Basic Operators</h3>
+                <pre data-language="Python" class="python"><code>def register_integer_operators():
+    """Register basic integer operators with TVM"""
+    return {
+        "add": register_add(),
+        "multiply": register_multiply(),
+        "divide": register_divide(),
+        "compare": register_compare()
+    }
+
+def register_add():
+    """
+    Integer addition with overflow handling
+    - Direct TFHE addition
+    - Noise management
+    - Optional bootstrapping
+    """
+    return tvm.op.register_op("tfhe.int.add")(
+        compute=lambda A, B: tvm.compute(
+            A.shape,
+            lambda *i: tfhe_add(A[i], B[i]),
+            name="tfhe_int_add"
+        )
+    )
+
+def register_multiply():
+    """
+    Integer multiplication with scaling
+    - Handle overflow
+    - Manage noise growth
+    - Optional bootstrapping
+    """
+    return tvm.op.register_op("tfhe.int.multiply")(
+        compute=lambda A, B, scale: tvm.compute(
+            A.shape,
+            lambda *i: tfhe_multiply(A[i], B[i]) // scale,
+            name="tfhe_int_multiply"
+        )
+    )</code></pre>
+            </section>
+
+            <section id="matrix-ops">
+                <h3>Matrix Operations</h3>
+                <pre data-language="C++" class="cpp"><code>class TFHEMatrixOps {
+public:
+    // Matrix multiplication
+    TFHEIntegerTensor MatMul(
+        const TFHEIntegerTensor& A,
+        const TFHEIntegerTensor& B,
+        bool need_bootstrap = false
+    ) {
+        auto result = ComputeMatMul(A, B);
+        
+        if (need_bootstrap) {
+            result = Bootstrap(result);
+        }
+        
+        return result;
+    }
+    
+    // Batched operations
+    TFHEIntegerTensor BatchMatMul(
+        const std::vector<TFHEIntegerTensor>& inputs,
+        const MatMulConfig& config
+    ) {
+        return ExecuteBatched(
+            inputs,
+            [&](auto& a, auto& b) { 
+                return MatMul(a, b, config.bootstrap);
+            }
+        );
+    }
+    
+private:
+    TFHEIntegerTensor ComputeMatMul(
+        const TFHEIntegerTensor& A,
+        const TFHEIntegerTensor& B
+    ) {
+        // Implement matrix multiplication
+        // Handle noise growth
+        // Manage memory
+    }
+};</code></pre>
+            </section>
+
+            <section id="custom-ops">
+                <h3>Custom Operators</h3>
+                <pre data-language="Python" class="python"><code>class CustomIntegerOps:
+    def __init__(self):
+        self.register_custom_ops()
+        
+    def register_custom_ops(self):
+        """Register custom integer operations"""
+        self.register_conv2d()
+        self.register_pooling()
+        self.register_normalization()
+        
+    def register_conv2d(self):
+        """
+        Integer convolution operation
+        - Direct integer computation
+        - Efficient memory access
+        - Hardware optimization
+        """
+        return tvm.op.register_op("tfhe.int.conv2d")(
+            compute=self.compute_conv2d,
+            schedule=self.schedule_conv2d
+        )
+    
+    def compute_conv2d(self, inputs, weights, stride, padding):
+        """Compute integer convolution"""
+        # Implementation details
+        
+    def schedule_conv2d(self, outs):
+        """Optimize convolution schedule"""
+        # Implementation details</code></pre>
+            </section>
+        </section>
+
+        <section id="examples">
+            <h2>Implementation Examples</h2>
+
+            <section id="linear">
+                <h3>1. Linear Layer</h3>
+                <pre data-language="Python" class="python"><code>def implement_linear_layer(
+    input_size: int,
+    output_size: int,
+    scale: int
+) -> tvm.te.Tensor:
+    """
+    Implement quantized linear layer
+    - Integer matrix multiplication
+    - Bias addition
+    - Activation function
+    """
+    # Define computation
+    A = tvm.te.placeholder((input_size,), name="input", dtype="int32")
+    W = tvm.te.placeholder((output_size, input_size), name="weight", dtype="int32")
+    B = tvm.te.placeholder((output_size,), name="bias", dtype="int32")
+    
+    # Matrix multiplication
+    matmul = tvm.te.compute(
+        (output_size,),
+        lambda i: tvm.sum(A[k] * W[i,k] for k in range(input_size)),
+        name="matmul"
+    )
+    
+    # Add bias and scale
+    output = tvm.te.compute(
+        (output_size,),
+        lambda i: (matmul[i] + B[i]) // scale,
+        name="output"
+    )
+    
+    return output</code></pre>
+            </section>
+
+            <section id="conv">
+                <h3>2. Convolution Layer</h3>
+                <pre data-language="Python" class="python"><code>def implement_conv2d(
+    input_shape: Tuple[int, int, int, int],
+    filter_shape: Tuple[int, int, int, int],
+    stride: Tuple[int, int],
+    padding: Tuple[int, int],
+    scale: int
+) -> tvm.te.Tensor:
+    """
+    Implement quantized convolution
+    - Integer convolution
+    - Efficient memory access
+    - Hardware optimization
+    """
+    # Define shapes
+    N, H, W, C = input_shape
+    K, R, S, C = filter_shape
+    
+    # Compute output shape
+    P = (H + 2 * padding[0] - R) // stride[0] + 1
+    Q = (W + 2 * padding[1] - S) // stride[1] + 1
+    
+    # Define computation
+    A = tvm.te.placeholder(input_shape, name="input", dtype="int32")
+    F = tvm.te.placeholder(filter_shape, name="filter", dtype="int32")
+    
+    # Convolution computation
+    output = tvm.te.compute(
+        (N, P, Q, K),
+        lambda n, p, q, k: tvm.sum(
+            A[n, p*stride[0]+r, q*stride[1]+s, c] * 
+            F[k, r, s, c]
+            for r in range(R)
+            for s in range(S)
+            for c in range(C)
+        ) // scale,
+        name="conv2d"
+    )
+    
+    return output</code></pre>
+            </section>
+
+            <section id="activations">
+                <h3>3. Activation Functions</h3>
+                <pre data-language="Python" class="python"><code>def implement_activations(
+    input_tensor: tvm.te.Tensor,
+    activation_type: str,
+    scale: int
+) -> tvm.te.Tensor:
+    """
+    Implement quantized activation functions
+    - ReLU
+    - Sigmoid approximation
+    - Softmax approximation
+    """
+    if activation_type == "relu":
+        return tvm.te.compute(
+            input_tensor.shape,
+            lambda *i: tvm.max(0, input_tensor[i]),
+            name="relu"
+        )
+    elif activation_type == "sigmoid":
+        # Piece-wise linear approximation
+        return tvm.te.compute(
+            input_tensor.shape,
+            lambda *i: approximate_sigmoid(input_tensor[i], scale),
+            name="sigmoid"
+        )
+    elif activation_type == "softmax":
+        # Integer softmax approximation
+        return implement_softmax(input_tensor, scale)
+    else:
+        raise ValueError(f"Unsupported activation: {activation_type}")</code></pre>
+            </section>
+        </section>
+
+        <section id="performance">
+            <h2>Performance Considerations</h2>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Integer Operation Benefits</div>
+                    <ul>
+                        <li>Direct hardware mapping</li>
+                        <li>Reduced memory usage</li>
+                        <li>Simpler bootstrapping</li>
+                        <li>Better noise characteristics</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Optimization Opportunities</div>
+                    <ul>
+                        <li>SIMD operations</li>
+                        <li>Memory access patterns</li>
+                        <li>Hardware-specific optimizations</li>
+                        <li>Batch processing</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Implementation Trade-offs</div>
+                    <ul>
+                        <li>Precision vs performance</li>
+                        <li>Memory vs computation</li>
+                        <li>Hardware utilization</li>
+                        <li>Noise management</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Key Performance Metrics</div>
+                    <ul>
+                        <li>Operation latency</li>
+                        <li>Memory usage</li>
+                        <li>Hardware utilization</li>
+                        <li>Noise growth</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((block) => {
+            const language = block.parentElement.getAttribute('data-language').toLowerCase();
+            block.classList.add(language);
+        });
+    </script>
+</body>
+</html>

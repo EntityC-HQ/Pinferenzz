@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Size Analysis by Sector</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Market share tables */
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--code-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .market-table th,
+        .market-table td {
+            padding: 1rem;
+            text-align: right;
+            border: 1px solid var(--border-color);
+        }
+
+        .market-table th {
+            background: var(--secondary-bg);
+            color: var(--accent-color);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .market-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        /* Market metrics */
+        .market-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-card {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin: 0.5rem 0;
+        }
+
+        .metric-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        /* Growth indicators */
+        .growth-indicator {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        .growth-value {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin-right: 0.5rem;
+        }
+
+        .growth-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+            .market-table {
+                font-size: 0.8rem;
+            }
+            .metric-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#healthcare">Healthcare Sector</a>
+                <ul>
+                    <li><a href="#healthcare-breakdown">Market Breakdown</a></li>
+                </ul>
+            </li>
+            <li><a href="#financial">Financial Services</a>
+                <ul>
+                    <li><a href="#financial-breakdown">Market Breakdown</a></li>
+                </ul>
+            </li>
+            <li><a href="#enterprise">Enterprise AI</a>
+                <ul>
+                    <li><a href="#enterprise-breakdown">Market Breakdown</a></li>
+                </ul>
+            </li>
+            <li><a href="#tam">Total Addressable Market</a>
+                <ul>
+                    <li><a href="#current-size">Current Market Size</a></li>
+                    <li><a href="#projections">Growth Projections</a></li>
+                </ul>
+            </li>
+            <li><a href="#entry">Market Entry Strategy</a>
+                <ul>
+                    <li><a href="#initial">Initial Focus</a></li>
+                    <li><a href="#expansion">Expansion Phase</a></li>
+                    <li><a href="#maturity">Maturity Phase</a></li>
+                </ul>
+            </li>
+            <li><a href="#revenue">Revenue Potential</a>
+                <ul>
+                    <li><a href="#short-term">Short Term</a></li>
+                    <li><a href="#medium-term">Medium Term</a></li>
+                    <li><a href="#long-term">Long Term</a></li>
+                </ul>
+            </li>
+            <li><a href="#projections">Market Share Projections</a></li>
+            <li><a href="#drivers">Growth Drivers</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Market Size Analysis by Sector</h1>
+
+        <section id="healthcare">
+            <h2>Healthcare Sector</h2>
+            <div class="mermaid">
+            graph TD
+                A[Healthcare Market] --> B[Clinical Analytics]
+                A --> C[Medical Imaging]
+                A --> D[Drug Discovery]
+                
+                B --> E[$5.2B TAM]
+                C --> F[$4.8B TAM]
+                D --> G[$3.7B TAM]
+            </div>
+
+            <section id="healthcare-breakdown">
+                <h3>Market Breakdown</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Clinical Analytics</div>
+                        <div class="metric-value">$5.2B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">28% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">35%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Medical Imaging</div>
+                        <div class="metric-value">$4.8B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">24% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">40%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Drug Discovery</div>
+                        <div class="metric-value">$3.7B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">32% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">30%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="financial">
+            <h2>Financial Services</h2>
+            <div class="mermaid">
+            graph TD
+                A[Financial Services] --> B[Fraud Detection]
+                A --> C[Risk Assessment]
+                A --> D[Trading Analytics]
+                
+                B --> E[$6.8B TAM]
+                C --> F[$5.4B TAM]
+                D --> G[$4.2B TAM]
+            </div>
+
+            <section id="financial-breakdown">
+                <h3>Market Breakdown</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Fraud Detection</div>
+                        <div class="metric-value">$6.8B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">25% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">45%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Risk Assessment</div>
+                        <div class="metric-value">$5.4B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">22% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">40%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Trading Analytics</div>
+                        <div class="metric-value">$4.2B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">30% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">35%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="enterprise">
+            <h2>Enterprise AI</h2>
+            <div class="mermaid">
+            graph TD
+                A[Enterprise AI] --> B[Customer Analytics]
+                A --> C[Supply Chain]
+                A --> D[Product Development]
+                
+                B --> E[$7.5B TAM]
+                C --> F[$5.8B TAM]
+                D --> G[$4.5B TAM]
+            </div>
+
+            <section id="enterprise-breakdown">
+                <h3>Market Breakdown</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Customer Analytics</div>
+                        <div class="metric-value">$7.5B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">35% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">40%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Supply Chain</div>
+                        <div class="metric-value">$5.8B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">28% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">35%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Product Development</div>
+                        <div class="metric-value">$4.5B</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">32% CAGR</div>
+                            <div class="growth-label">Growth Rate</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">30%</div>
+                            <div class="growth-label">Addressable Share</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="tam">
+            <h2>Total Addressable Market (TAM)</h2>
+
+            <section id="current-size">
+                <h3>Current Market Size (2025)</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Total TAM: $47.9B] --> B[Healthcare: $13.7B]
+                    A --> C[Financial: $16.4B]
+                    A --> D[Enterprise: $17.8B]
+                    
+                    B --> E[Addressable: $4.8B]
+                    C --> F[Addressable: $6.9B]
+                    D --> G[Addressable: $6.8B]
+                </div>
+            </section>
+
+            <section id="projections">
+                <h3>Growth Projections (2025-2030)</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Healthcare</div>
+                        <div class="metric-value">28.5% CAGR</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2025: $13.7B</div>
+                            <div class="growth-label">2030: $48.2B</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">Addressable</div>
+                            <div class="growth-label">2025: $4.8B → 2030: $16.9B</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Financial Services</div>
+                        <div class="metric-value">26.3% CAGR</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2025: $16.4B</div>
+                            <div class="growth-label">2030: $52.8B</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">Addressable</div>
+                            <div class="growth-label">2025: $6.9B → 2030: $22.2B</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Enterprise AI</div>
+                        <div class="metric-value">30.8% CAGR</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2025: $17.8B</div>
+                            <div class="growth-label">2030: $68.4B</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">Addressable</div>
+                            <div class="growth-label">2025: $6.8B → 2030: $26.1B</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="entry">
+            <h2>Market Entry Strategy</h2>
+
+            <section id="initial">
+                <h3>1. Initial Focus (2025-2026)</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Market Entry] --> B[Healthcare Analytics]
+                    A --> C[Financial Fraud]
+                    A --> D[Enterprise Analytics]
+                    
+                    B --> E[TAM: $5.2B]
+                    C --> F[TAM: $6.8B]
+                    D --> G[TAM: $7.5B]
+                </div>
+
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Healthcare Analytics</div>
+                        <ul>
+                            <li>Clinical decision support</li>
+                            <li>Patient data analysis</li>
+                            <li>Research collaboration</li>
+                            <li>Expected Share: 10%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Financial Fraud</div>
+                        <ul>
+                            <li>Real-time detection</li>
+                            <li>Cross-border transactions</li>
+                            <li>Multi-party analysis</li>
+                            <li>Expected Share: 8%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Enterprise Analytics</div>
+                        <ul>
+                            <li>Customer behavior</li>
+                            <li>Market analysis</li>
+                            <li>Product optimization</li>
+                            <li>Expected Share: 7%</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="expansion">
+                <h3>2. Expansion Phase (2026-2028)</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Healthcare</div>
+                        <ul>
+                            <li>Medical imaging</li>
+                            <li>Drug discovery</li>
+                            <li>Clinical trials</li>
+                            <li>Expected Share: 15%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Financial Services</div>
+                        <ul>
+                            <li>Risk assessment</li>
+                            <li>Trading analytics</li>
+                            <li>Regulatory compliance</li>
+                            <li>Expected Share: 12%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Enterprise</div>
+                        <ul>
+                            <li>Supply chain</li>
+                            <li>Product development</li>
+                            <li>Partner collaboration</li>
+                            <li>Expected Share: 10%</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="maturity">
+                <h3>3. Maturity Phase (2028-2030)</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Healthcare</div>
+                        <ul>
+                            <li>Market Leader in Privacy</li>
+                            <li>Full Suite Integration</li>
+                            <li>Global Presence</li>
+                            <li>Expected Share: 25%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Financial Services</div>
+                        <ul>
+                            <li>Standard Solution</li>
+                            <li>Global Platform</li>
+                            <li>Full Compliance</li>
+                            <li>Expected Share: 20%</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Enterprise</div>
+                        <ul>
+                            <li>Innovation Leader</li>
+                            <li>Complete Platform</li>
+                            <li>Global Scale</li>
+                            <li>Expected Share: 18%</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="revenue">
+            <h2>Revenue Potential</h2>
+
+            <section id="short-term">
+                <h3>1. Short Term (2025-2026)</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Revenue Streams] --> B[License Sales]
+                    A --> C[Implementation]
+                    A --> D[Support]
+                    
+                    B --> E[$25M-35M]
+                    C --> F[$15M-20M]
+                    D --> G[$10M-15M]
+                </div>
+            </section>
+
+            <section id="medium-term">
+                <h3>2. Medium Term (2026-2028)</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">License Sales</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2026: $45M-60M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2027: $80M-100M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2028: $120M-150M</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Services</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2026: $25M-35M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2027: $40M-55M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2028: $60M-80M</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="long-term">
+                <h3>3. Long Term (2028-2030)</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">License Sales</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2028: $120M-150M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2029: $180M-220M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2030: $250M-300M</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Services</div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2028: $60M-80M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2029: $90M-120M</div>
+                        </div>
+                        <div class="growth-indicator">
+                            <div class="growth-value">2030: $130M-160M</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="projections">
+            <h2>Market Share Projections</h2>
+
+            <section id="healthcare-share">
+                <h3>1. Healthcare Sector</h3>
+                <table class="market-table">
+                    <tr>
+                        <th>Year</th>
+                        <th>Market Size</th>
+                        <th>Our Share</th>
+                        <th>Revenue</th>
+                    </tr>
+                    <tr>
+                        <td>2025</td>
+                        <td>$13.7B</td>
+                        <td>2%</td>
+                        <td>$274M</td>
+                    </tr>
+                    <tr>
+                        <td>2026</td>
+                        <td>$17.6B</td>
+                        <td>4%</td>
+                        <td>$704M</td>
+                    </tr>
+                    <tr>
+                        <td>2027</td>
+                        <td>$22.6B</td>
+                        <td>6%</td>
+                        <td>$1.36B</td>
+                    </tr>
+                    <tr>
+                        <td>2028</td>
+                        <td>$29.0B</td>
+                        <td>8%</td>
+                        <td>$2.32B</td>
+                    </tr>
+                    <tr>
+                        <td>2029</td>
+                        <td>$37.3B</td>
+                        <td>10%</td>
+                        <td>$3.73B</td>
+                    </tr>
+                    <tr>
+                        <td>2030</td>
+                        <td>$48.2B</td>
+                        <td>12%</td>
+                        <td>$5.78B</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="financial-share">
+                <h3>2. Financial Services</h3>
+                <table class="market-table">
+                    <tr>
+                        <th>Year</th>
+                        <th>Market Size</th>
+                        <th>Our Share</th>
+                        <th>Revenue</th>
+                    </tr>
+                    <tr>
+                        <td>2025</td>
+                        <td>$16.4B</td>
+                        <td>1.5%</td>
+                        <td>$246M</td>
+                    </tr>
+                    <tr>
+                        <td>2026</td>
+                        <td>$20.7B</td>
+                        <td>3%</td>
+                        <td>$621M</td>
+                    </tr>
+                    <tr>
+                        <td>2027</td>
+                        <td>$26.1B</td>
+                        <td>5%</td>
+                        <td>$1.31B</td>
+                    </tr>
+                    <tr>
+                        <td>2028</td>
+                        <td>$33.0B</td>
+                        <td>7%</td>
+                        <td>$2.31B</td>
+                    </tr>
+                    <tr>
+                        <td>2029</td>
+                        <td>$41.7B</td>
+                        <td>9%</td>
+                        <td>$3.75B</td>
+                    </tr>
+                    <tr>
+                        <td>2030</td>
+                        <td>$52.8B</td>
+                        <td>11%</td>
+                        <td>$5.81B</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="enterprise-share">
+                <h3>3. Enterprise AI</h3>
+                <table class="market-table">
+                    <tr>
+                        <th>Year</th>
+                        <th>Market Size</th>
+                        <th>Our Share</th>
+                        <th>Revenue</th>
+                    </tr>
+                    <tr>
+                        <td>2025</td>
+                        <td>$17.8B</td>
+                        <td>1%</td>
+                        <td>$178M</td>
+                    </tr>
+                    <tr>
+                        <td>2026</td>
+                        <td>$23.3B</td>
+                        <td>2.5%</td>
+                        <td>$583M</td>
+                    </tr>
+                    <tr>
+                        <td>2027</td>
+                        <td>$30.5B</td>
+                        <td>4%</td>
+                        <td>$1.22B</td>
+                    </tr>
+                    <tr>
+                        <td>2028</td>
+                        <td>$39.9B</td>
+                        <td>6%</td>
+                        <td>$2.39B</td>
+                    </tr>
+                    <tr>
+                        <td>2029</td>
+                        <td>$52.2B</td>
+                        <td>8%</td>
+                        <td>$4.18B</td>
+                    </tr>
+                    <tr>
+                        <td>2030</td>
+                        <td>$68.4B</td>
+                        <td>10%</td>
+                        <td>$6.84B</td>
+                    </tr>
+                </table>
+            </section>
+        </section>
+
+        <section id="drivers">
+            <h2>Growth Drivers</h2>
+
+            <section id="market-forces">
+                <h3>1. Market Forces</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Regulatory</div>
+                        <ul>
+                            <li>Privacy regulations</li>
+                            <li>Data protection</li>
+                            <li>Industry compliance</li>
+                            <li>Cross-border rules</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Technology</div>
+                        <ul>
+                            <li>AI adoption</li>
+                            <li>Privacy demands</li>
+                            <li>Security requirements</li>
+                            <li>Performance needs</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Competition</div>
+                        <ul>
+                            <li>Market advantage</li>
+                            <li>Innovation needs</li>
+                            <li>Cost pressure</li>
+                            <li>Time to market</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="solution-benefits">
+                <h3>2. Solution Benefits</h3>
+                <div class="market-metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Technical</div>
+                        <ul>
+                            <li>Superior performance</li>
+                            <li>Better scalability</li>
+                            <li>Lower costs</li>
+                            <li>Easier integration</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Business</div>
+                        <ul>
+                            <li>Competitive advantage</li>
+                            <li>Faster deployment</li>
+                            <li>Lower risk</li>
+                            <li>Better ROI</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Strategic</div>
+                        <ul>
+                            <li>Market leadership</li>
+                            <li>Innovation platform</li>
+                            <li>Future readiness</li>
+                            <li>Global reach</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            }
+        });
+    </script>
+</body>
+</html>

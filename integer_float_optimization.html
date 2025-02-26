@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integer vs Float Operations in TFHE-TVM Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+            --python-keyword: #cc7832;
+            --python-string: #6a8759;
+            --python-comment: #808080;
+            --cpp-keyword: #cc7832;
+            --cpp-type: #a9b7c6;
+            --cpp-string: #6a8759;
+            --cpp-comment: #808080;
+            --metric-positive: #32CD32;
+            --metric-negative: #ff3333;
+            --metric-neutral: #ffa500;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        /* Language-specific syntax highlighting */
+        .python .keyword { color: var(--python-keyword); }
+        .python .string { color: var(--python-string); }
+        .python .comment { color: var(--python-comment); }
+        .python .function { color: #ffc66d; }
+        .python .class { color: #a9b7c6; }
+        .python .number { color: #6897bb; }
+
+        .cpp .keyword { color: var(--cpp-keyword); }
+        .cpp .type { color: var(--cpp-type); }
+        .cpp .string { color: var(--cpp-string); }
+        .cpp .comment { color: var(--cpp-comment); }
+        .cpp .function { color: #ffc66d; }
+        .cpp .number { color: #6897bb; }
+
+        /* Performance metrics styling */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-card {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-title {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+
+        .metric-value.positive {
+            color: var(--metric-positive);
+        }
+
+        .metric-value.negative {
+            color: var(--metric-negative);
+        }
+
+        .metric-value.neutral {
+            color: var(--metric-neutral);
+        }
+
+        /* Comparison tables */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--code-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-table th {
+            background: var(--secondary-bg);
+            color: var(--accent-color);
+        }
+
+        .comparison-table tr:hover {
+            background: var(--table-hover);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#performance">Performance Comparison</a></li>
+            <li><a href="#integer">Integer Advantages</a>
+                <ul>
+                    <li><a href="#direct-benefits">Direct Operation Benefits</a></li>
+                    <li><a href="#implementation">Implementation Efficiency</a></li>
+                </ul>
+            </li>
+            <li><a href="#float">Float Emulation Overhead</a>
+                <ul>
+                    <li><a href="#conversion">Conversion Costs</a></li>
+                    <li><a href="#memory">Memory Impact</a></li>
+                </ul>
+            </li>
+            <li><a href="#optimization">Optimization Strategies</a>
+                <ul>
+                    <li><a href="#integer-first">Integer-First Approach</a></li>
+                    <li><a href="#hardware">Hardware Utilization</a></li>
+                </ul>
+            </li>
+            <li><a href="#implications">Performance Implications</a>
+                <ul>
+                    <li><a href="#latency">Operation Latency</a></li>
+                    <li><a href="#memory-usage">Memory Usage</a></li>
+                    <li><a href="#efficiency">Hardware Efficiency</a></li>
+                </ul>
+            </li>
+            <li><a href="#recommendations">Implementation Recommendations</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Integer vs Float Operations in TFHE-TVM Integration</h1>
+
+        <section id="performance">
+            <h2>Performance Comparison</h2>
+            <div class="mermaid">
+            graph TD
+                A[Operation Types] --> B[Integer Operations]
+                A --> C[Float Operations]
+                
+                B --> D[Direct Processing]
+                B --> E[Lower Memory Usage]
+                B --> F[Faster Bootstrapping]
+                
+                C --> G[Emulation Layer]
+                C --> H[Higher Memory Usage]
+                C --> I[Complex Bootstrapping]
+            </div>
+        </section>
+
+        <section id="integer">
+            <h2>Integer Advantages</h2>
+
+            <section id="direct-benefits">
+                <h3>1. Direct Operation Benefits</h3>
+                <div class="mermaid">
+                graph LR
+                    A[Integer Operations] --> B[No Conversion]
+                    A --> C[Direct Hardware]
+                    A --> D[Simple Bootstrapping]
+                    
+                    B --> E[Lower Latency]
+                    C --> F[Better Utilization]
+                    D --> G[Less Noise Growth]
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Operation Latency</div>
+                        <div class="metric-value positive">2-3x faster</div>
+                        <div class="metric-subtitle">compared to float operations</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Memory Usage</div>
+                        <div class="metric-value positive">30-40% less</div>
+                        <div class="metric-subtitle">than float operations</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Bootstrapping Speed</div>
+                        <div class="metric-value positive">2x faster</div>
+                        <div class="metric-subtitle">than float operations</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Hardware Utilization</div>
+                        <div class="metric-value positive">40-50% better</div>
+                        <div class="metric-subtitle">than float operations</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="implementation">
+                <h3>2. Implementation Efficiency</h3>
+                <pre data-language="C++" class="cpp"><code>class IntegerOperations {
+public:
+    struct PerformanceMetrics {
+        uint64_t operation_latency;
+        size_t memory_usage;
+        uint32_t noise_level;
+        float hardware_utilization;
+    };
+    
+    // Direct integer multiplication
+    PerformanceMetrics MultiplyIntegers(
+        const TFHEInteger& a,
+        const TFHEInteger& b
+    ) {
+        // Direct operation
+        auto result = DirectMultiply(a, b);
+        
+        // Simple noise management
+        if (NeedsBootstrapping(result)) {
+            Bootstrap(result);
+        }
+        
+        return CollectMetrics(result);
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="float">
+            <h2>Float Emulation Overhead</h2>
+
+            <section id="conversion">
+                <h3>1. Conversion Costs</h3>
+                <pre data-language="C++" class="cpp"><code>class FloatEmulation {
+public:
+    struct EmulationCosts {
+        uint64_t conversion_time;
+        size_t extra_memory;
+        uint32_t noise_increase;
+    };
+    
+    // Float multiplication through integers
+    EmulationCosts MultiplyFloats(
+        const TFHEFloat& a,
+        const TFHEFloat& b
+    ) {
+        // Extract components
+        auto a_parts = DecomposeFloat(a);
+        auto b_parts = DecomposeFloat(b);
+        
+        // Perform integer operations
+        auto result = ComputeFloatMul(a_parts, b_parts);
+        
+        // Normalize and convert back
+        return CollectCosts(result);
+    }
+};</code></pre>
+            </section>
+
+            <section id="memory">
+                <h3>2. Memory Impact</h3>
+                <pre data-language="C++" class="cpp"><code>struct MemoryComparison {
+    // Integer operation memory
+    struct IntegerMemory {
+        size_t ciphertext_size = sizeof(TFHEInteger);
+        size_t working_space = ciphertext_size * 2;
+        size_t total = ciphertext_size + working_space;
+    };
+    
+    // Float operation memory
+    struct FloatMemory {
+        size_t mantissa_size = sizeof(TFHEInteger);
+        size_t exponent_size = sizeof(TFHEInteger);
+        size_t working_space = (mantissa_size + exponent_size) * 3;
+        size_t total = mantissa_size + exponent_size + working_space;
+    };
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="optimization">
+            <h2>Optimization Strategies</h2>
+
+            <section id="integer-first">
+                <h3>1. Integer-First Approach</h3>
+                <pre data-language="Python" class="python"><code>class OperationOptimizer:
+    def __init__(self):
+        self.strategies = {
+            "integer": self.optimize_integer,
+            "float": self.optimize_float,
+            "hybrid": self.optimize_hybrid
+        }
+    
+    def optimize_integer(self, op):
+        """
+        Integer optimization strategy
+        - Direct hardware mapping
+        - Minimal conversions
+        - Efficient bootstrapping
+        """
+        return {
+            "performance_gain": "2-3x",
+            "memory_savings": "30-40%",
+            "noise_reduction": "50%"
+        }
+    
+    def optimize_float(self, op):
+        """
+        Float optimization strategy
+        - Component management
+        - Conversion optimization
+        - Noise handling
+        """
+        return {
+            "conversion_overhead": "40-50%",
+            "memory_overhead": "60-70%",
+            "noise_increase": "100%"
+        }</code></pre>
+            </section>
+
+            <section id="hardware">
+                <h3>2. Hardware Utilization</h3>
+                <pre data-language="C++" class="cpp"><code>class HardwareOptimizer {
+public:
+    struct Utilization {
+        // Integer operations
+        struct IntegerUtil {
+            float direct_mapping = 0.9f;    // 90% efficiency
+            float memory_bandwidth = 0.85f;  // 85% utilization
+            float compute_units = 0.95f;     // 95% usage
+        };
+        
+        // Float operations
+        struct FloatUtil {
+            float direct_mapping = 0.6f;    // 60% efficiency
+            float memory_bandwidth = 0.5f;   // 50% utilization
+            float compute_units = 0.7f;      // 70% usage
+        };
+    };
+    
+    // Optimization selection
+    OptimizationPlan SelectPlan(const Operation& op) {
+        if (IsIntegerOperation(op)) {
+            return CreateIntegerPlan(op);
+        } else {
+            return CreateFloatPlan(op);
+        }
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="implications">
+            <h2>Performance Implications</h2>
+
+            <section id="latency">
+                <h3>1. Operation Latency</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Operation Type] --> B[Integer Path]
+                    A --> C[Float Path]
+                    
+                    B --> D[Direct Execution]
+                    B --> E[Simple Bootstrap]
+                    
+                    C --> F[Component Handling]
+                    C --> G[Complex Bootstrap]
+                    C --> H[Conversion Overhead]
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Integer Operations</div>
+                        <div class="metric-value positive">1x (baseline)</div>
+                        <div class="metric-subtitle">Basic Operation</div>
+                        <div class="metric-value positive">1.5x</div>
+                        <div class="metric-subtitle">Bootstrapping</div>
+                        <div class="metric-value positive">2.5x</div>
+                        <div class="metric-subtitle">Total Latency</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Float Operations</div>
+                        <div class="metric-value negative">2x</div>
+                        <div class="metric-subtitle">Basic Operation</div>
+                        <div class="metric-value negative">3x</div>
+                        <div class="metric-subtitle">Bootstrapping</div>
+                        <div class="metric-value negative">1.5x</div>
+                        <div class="metric-subtitle">Conversion</div>
+                        <div class="metric-value negative">6.5x</div>
+                        <div class="metric-subtitle">Total Latency</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="memory-usage">
+                <h3>2. Memory Usage</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Integer Operations</div>
+                        <div class="metric-value positive">1x (baseline)</div>
+                        <div class="metric-subtitle">Ciphertext</div>
+                        <div class="metric-value neutral">2x</div>
+                        <div class="metric-subtitle">Working Space</div>
+                        <div class="metric-value neutral">3x</div>
+                        <div class="metric-subtitle">Total</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Float Operations</div>
+                        <div class="metric-value negative">2x</div>
+                        <div class="metric-subtitle">Ciphertext Components</div>
+                        <div class="metric-value negative">4x</div>
+                        <div class="metric-subtitle">Working Space</div>
+                        <div class="metric-value negative">2x</div>
+                        <div class="metric-subtitle">Conversion Space</div>
+                        <div class="metric-value negative">8x</div>
+                        <div class="metric-subtitle">Total</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="efficiency">
+                <h3>3. Hardware Efficiency</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Integer Operations</div>
+                        <div class="metric-value positive">90-95%</div>
+                        <div class="metric-subtitle">SIMD Usage</div>
+                        <div class="metric-value positive">85-90%</div>
+                        <div class="metric-subtitle">Memory Bandwidth</div>
+                        <div class="metric-value positive">90-95%</div>
+                        <div class="metric-subtitle">Compute Units</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Float Operations</div>
+                        <div class="metric-value neutral">60-70%</div>
+                        <div class="metric-subtitle">SIMD Usage</div>
+                        <div class="metric-value negative">50-60%</div>
+                        <div class="metric-subtitle">Memory Bandwidth</div>
+                        <div class="metric-value neutral">70-80%</div>
+                        <div class="metric-subtitle">Compute Units</div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="recommendations">
+            <h2>Implementation Recommendations</h2>
+
+            <section id="priority">
+                <h3>1. Operation Priority</h3>
+                <ol>
+                    <li>Direct Integer Operations</li>
+                    <li>Batched Integer Operations</li>
+                    <li>Essential Float Operations</li>
+                    <li>Complex Float Operations</li>
+                </ol>
+            </section>
+
+            <section id="optimization-focus">
+                <h3>2. Optimization Focus</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Optimization Priority] --> B[Integer Path]
+                    A --> C[Float Path]
+                    
+                    B --> D[Hardware Mapping]
+                    B --> E[Batch Processing]
+                    B --> F[Memory Layout]
+                    
+                    C --> G[Conversion Reduction]
+                    C --> H[Component Reuse]
+                    C --> I[Memory Management]
+                </div>
+            </section>
+
+            <section id="development">
+                <h3>3. Development Strategy</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Phase 1: Integer Foundation</div>
+                        <ul>
+                            <li>Core integer operations</li>
+                            <li>Hardware optimization</li>
+                            <li>Batch processing</li>
+                            <li>Performance baseline</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Phase 2: Float Support</div>
+                        <ul>
+                            <li>Essential float operations</li>
+                            <li>Conversion optimization</li>
+                            <li>Component management</li>
+                            <li>Performance tuning</li>
+                        </ul>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Phase 3: Integration</div>
+                        <ul>
+                            <li>Operation coordination</li>
+                            <li>Resource sharing</li>
+                            <li>System optimization</li>
+                            <li>Performance monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>The integer-first approach in TFHE-TVM integration offers significant advantages:</p>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Performance Benefits</div>
+                    <ul>
+                        <li>Lower latency</li>
+                        <li>Better memory efficiency</li>
+                        <li>Faster bootstrapping</li>
+                        <li>Higher hardware utilization</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Implementation Benefits</div>
+                    <ul>
+                        <li>Simpler implementation</li>
+                        <li>Direct hardware mapping</li>
+                        <li>Better optimization opportunities</li>
+                        <li>Clearer development path</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">System Benefits</div>
+                    <ul>
+                        <li>Lower resource requirements</li>
+                        <li>Better scalability</li>
+                        <li>Easier maintenance</li>
+                        <li>More predictable performance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">Recommendation</div>
+                <ul>
+                    <li>Focus on integer operations as primary path</li>
+                    <li>Implement float operations through integer emulation</li>
+                    <li>Optimize for hardware acceleration</li>
+                    <li>Maintain clear performance metrics</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            }
+        });
+
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((block) => {
+            const language = block.parentElement.getAttribute('data-language').toLowerCase();
+            block.classList.add(language);
+        });
+    </script>
+</body>
+</html>

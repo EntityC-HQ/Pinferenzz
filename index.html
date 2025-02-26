@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinfrenzz Master Plan - A Project of EntityC</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --hover-color: #2a2a2a;
+            --card-bg: #141414;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            border-bottom: 3px solid var(--accent-color);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { 
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        h1::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .project-description {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .document-list {
+            list-style: none;
+        }
+
+        .document-list li {
+            margin: 0.8rem 0;
+        }
+
+        .document-link {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .document-link:hover {
+            background: var(--hover-color);
+            border-left-color: var(--accent-color);
+            padding-left: 1rem;
+        }
+
+        .document-link::before {
+            content: '>';
+            color: var(--accent-color);
+            margin-right: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .document-link:hover::before {
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pinfrenzz Master Plan</h1>
+            <div class="project-description">
+                A comprehensive project by EntityC focused on integrating TFHE with hardware acceleration and TEE capabilities for secure, efficient private inference operations on AO.
+            </div>
+        </header>
+
+        <main>
+            <div class="section-grid">
+                <div class="section-card">
+                    <div class="section-title">Core Technical Documents</div>
+                    <ul class="document-list">
+                        <li><a href="technical_specifications.html" class="document-link">Technical Specifications</a></li>
+                        <li><a href="prototype_implementation.html" class="document-link">Prototype Implementation</a></li>
+                        <li><a href="tfhe_tee_synergy.html" class="document-link">TFHE-TEE Integration Analysis</a></li>
+                        <li><a href="tfhe_operations_tvm.html" class="document-link">TFHE Operations in TVM</a></li>
+                    </ul>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">Performance & Optimization</div>
+                    <ul class="document-list">
+                        <li><a href="performance_optimization.html" class="document-link">Performance Optimization</a></li>
+                        <li><a href="hardware_acceleration_patterns.html" class="document-link">Hardware Acceleration Patterns</a></li>
+                        <li><a href="integer_float_optimization.html" class="document-link">Integer & Float Optimization</a></li>
+                        <li><a href="nn_integer_operations.html" class="document-link">Neural Network Integer Operations</a></li>
+                    </ul>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">Integration & Implementation</div>
+                    <ul class="document-list">
+                        <li><a href="integration_plan.html" class="document-link">Integration Plan</a></li>
+                        <li><a href="prototype_plan.html" class="document-link">Prototype Plan</a></li>
+                        <li><a href="tvm_hyperbeam_integration.html" class="document-link">TVM-HyperBEAM Integration</a></li>
+                        <li><a href="timeline_and_resources.html" class="document-link">Timeline & Resources</a></li>
+                    </ul>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">Market & Strategy</div>
+                    <ul class="document-list">
+                        <li><a href="market_analysis.html" class="document-link">Market Analysis</a></li>
+                        <li><a href="market_size_analysis.html" class="document-link">Market Size Analysis</a></li>
+                        <li><a href="go_to_market_strategy.html" class="document-link">Go-to-Market Strategy</a></li>
+                        <li><a href="competitive_advantages.html" class="document-link">Competitive Advantages</a></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2025 EntityC. All rights reserved.</p>
+            <p>Pinfrenzz - Advancing Private Inference Technology</p>
+        </footer>
+    </div>
+</body>
+</html>

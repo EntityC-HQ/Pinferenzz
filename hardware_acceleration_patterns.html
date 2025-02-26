@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Acceleration Patterns for TFHE Integer Operations</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--accent-color);
+        }
+
+        .cpp {
+            color: #a9b7c6;
+        }
+
+        .cpp .keyword {
+            color: #cc7832;
+        }
+
+        .cpp .type {
+            color: #a9b7c6;
+        }
+
+        .cpp .string {
+            color: #6a8759;
+        }
+
+        .cpp .comment {
+            color: #808080;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#operation-distribution">Operation Distribution Strategy</a>
+                <ul>
+                    <li><a href="#operation-classification">Operation Classification</a></li>
+                </ul>
+            </li>
+            <li><a href="#implementations">Hardware-Specific Implementations</a>
+                <ul>
+                    <li><a href="#cpu-impl">CPU Implementation</a></li>
+                    <li><a href="#gpu-impl">GPU Implementation</a></li>
+                    <li><a href="#fpga-impl">FPGA Implementation</a></li>
+                </ul>
+            </li>
+            <li><a href="#memory">Memory Management</a>
+                <ul>
+                    <li><a href="#unified-memory">Unified Memory Strategy</a></li>
+                    <li><a href="#transfer">Transfer Optimization</a></li>
+                </ul>
+            </li>
+            <li><a href="#scheduling">Operation Scheduling</a>
+                <ul>
+                    <li><a href="#multi-device">Multi-Device Scheduler</a></li>
+                    <li><a href="#pipeline">Pipeline Optimization</a></li>
+                </ul>
+            </li>
+            <li><a href="#matrix">Implementation Example: Matrix Multiplication</a>
+                <ul>
+                    <li><a href="#multi-device-impl">Multi-Device Implementation</a></li>
+                    <li><a href="#device-specific">Device-Specific Optimizations</a></li>
+                </ul>
+            </li>
+            <li><a href="#monitoring">Performance Monitoring</a>
+                <ul>
+                    <li><a href="#metrics">Metrics Collection</a></li>
+                    <li><a href="#feedback">Optimization Feedback</a></li>
+                </ul>
+            </li>
+            <li><a href="#considerations">Implementation Considerations</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Hardware Acceleration Patterns for TFHE Integer Operations</h1>
+
+        <section id="operation-distribution">
+            <h2>Operation Distribution Strategy</h2>
+            <div class="mermaid">
+            graph TD
+                A[Operation Analyzer] --> B[CPU Operations]
+                A --> C[GPU Operations]
+                A --> D[FPGA Operations]
+                
+                B --> E[Simple Integer Ops]
+                B --> F[Small Matrices]
+                
+                C --> G[Large Matrices]
+                C --> H[Parallel Bootstrap]
+                
+                D --> I[Fixed Pattern Ops]
+                D --> J[Custom Circuits]
+            </div>
+
+            <section id="operation-classification">
+                <h3>Operation Classification</h3>
+                <ol>
+                    <li>CPU-Optimized Operations:
+                        <ul>
+                            <li>Simple integer arithmetic</li>
+                            <li>Small matrix operations (< 32x32)</li>
+                            <li>Control flow operations</li>
+                            <li>Sequential operations</li>
+                        </ul>
+                    </li>
+                    <li>GPU-Optimized Operations:
+                        <ul>
+                            <li>Large matrix multiplications</li>
+                            <li>Batch bootstrapping</li>
+                            <li>Parallel integer operations</li>
+                            <li>High memory bandwidth operations</li>
+                        </ul>
+                    </li>
+                    <li>FPGA-Optimized Operations:
+                        <ul>
+                            <li>Fixed-pattern computations</li>
+                            <li>Custom bootstrapping circuits</li>
+                            <li>Specialized integer operations</li>
+                            <li>Stream processing</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+        </section>
+
+        <section id="implementations">
+            <h2>Hardware-Specific Implementations</h2>
+
+            <section id="cpu-impl">
+                <h3>1. CPU Implementation</h3>
+                <pre><code class="cpp">class CPUAccelerator {
+public:
+    struct Config {
+        int num_threads;
+        size_t cache_size;
+        bool use_avx512;
+        bool use_fma;
+    };
+    
+    // SIMD-optimized integer operations
+    void ExecuteIntegerOp(
+        const TFHEInteger& input,
+        const Operation& op,
+        const Config& config
+    ) {
+        if (config.use_avx512) {
+            ExecuteAVX512(input, op);
+        } else {
+            ExecuteStandard(input, op);
+        }
+    }
+};</code></pre>
+            </section>
+
+            <section id="gpu-impl">
+                <h3>2. GPU Implementation</h3>
+                <pre><code class="cpp">class GPUAccelerator {
+public:
+    struct Config {
+        int num_streams;
+        size_t shared_memory;
+        bool use_tensor_cores;
+        CUDAVersion cuda_version;
+    };
+    
+    void ExecuteMatrixOp(
+        const TFHEMatrix& input,
+        const Operation& op,
+        const Config& config
+    ) {
+        auto stream = GetOptimalStream(op);
+        TransferToGPU(input, stream);
+        LaunchKernel(op, stream);
+        TransferFromGPU(stream);
+    }
+};</code></pre>
+            </section>
+        </section>
+
+            <section id="fpga-impl">
+                <h3>3. FPGA Implementation</h3>
+                <pre><code class="cpp">class FPGAAccelerator {
+public:
+    struct Config {
+        int num_compute_units;
+        size_t bram_size;
+        bool use_hls;
+        ClockFrequency target_freq;
+    };
+    
+    // Custom circuit implementation
+    void ExecuteCustomOp(
+        const TFHEInteger& input,
+        const Operation& op,
+        const Config& config
+    ) {
+        // Circuit selection
+        auto circuit = SelectCircuit(op);
+        
+        // Data streaming
+        StreamToFPGA(input);
+        
+        // Circuit execution
+        ExecuteCircuit(circuit);
+        
+        // Result collection
+        CollectResults();
+    }
+    
+private:
+    // Circuit optimization
+    struct CircuitConfig {
+        int pipeline_depth;
+        int parallelism;
+        bool use_dsp;
+        MemoryLayout mem_layout;
+    };
+    
+    CircuitConfig OptimizeCircuit(
+        const Operation& op,
+        const FPGAResources& resources
+    ) {
+        // Analyze requirements
+        // Check resource availability
+        // Optimize circuit
+        // Return configuration
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="memory">
+            <h2>Memory Management</h2>
+
+            <section id="unified-memory">
+                <h3>1. Unified Memory Strategy</h3>
+                <pre><code class="cpp">class UnifiedMemoryManager {
+public:
+    struct MemoryConfig {
+        size_t gpu_memory_limit;
+        size_t fpga_memory_limit;
+        bool use_unified_memory;
+        CachingStrategy cache_strategy;
+    };
+    
+    // Memory allocation
+    void* AllocateMemory(
+        size_t size,
+        DeviceType device,
+        const MemoryConfig& config
+    ) {
+        if (config.use_unified_memory) {
+            return AllocateUnified(size);
+        } else {
+            return AllocateDevice(size, device);
+        }
+    }
+    
+private:
+    void* AllocateUnified(size_t size) {
+        // Allocate unified memory
+        // Setup page migration hints
+        // Configure access patterns
+        // Return pointer
+    }
+    
+    void* AllocateDevice(size_t size, DeviceType device) {
+        // Device-specific allocation
+        // Memory pool management
+        // Access optimization
+        // Return pointer
+    }
+};</code></pre>
+            </section>
+
+            <section id="transfer">
+                <h3>2. Transfer Optimization</h3>
+                <pre><code class="cpp">class TransferManager {
+public:
+    struct TransferConfig {
+        bool use_pinned_memory;
+        bool enable_overlap;
+        size_t batch_size;
+        TransferPolicy policy;
+    };
+    
+    // Optimized transfer
+    void TransferData(
+        const void* src,
+        void* dst,
+        size_t size,
+        const TransferConfig& config
+    ) {
+        if (config.enable_overlap) {
+            TransferWithOverlap(src, dst, size);
+        } else {
+            TransferDirect(src, dst, size);
+        }
+    }
+    
+private:
+    void TransferWithOverlap(
+        const void* src,
+        void* dst,
+        size_t size
+    ) {
+        // Pipeline transfers
+        // Overlap computation
+        // Manage streams
+        // Handle synchronization
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="scheduling">
+            <h2>Operation Scheduling</h2>
+
+            <section id="multi-device">
+                <h3>1. Multi-Device Scheduler</h3>
+                <pre><code class="cpp">class DeviceScheduler {
+public:
+    struct ScheduleConfig {
+        float cpu_weight;
+        float gpu_weight;
+        float fpga_weight;
+        LoadBalanceStrategy strategy;
+    };
+    
+    // Operation scheduling
+    DeviceAssignment ScheduleOperation(
+        const Operation& op,
+        const ScheduleConfig& config
+    ) {
+        // Analyze operation
+        auto requirements = AnalyzeRequirements(op);
+        
+        // Check device availability
+        auto available = GetAvailableDevices();
+        
+        // Select optimal device
+        return SelectDevice(requirements, available, config);
+    }
+    
+private:
+    DeviceAssignment SelectDevice(
+        const Requirements& reqs,
+        const DeviceStatus& status,
+        const ScheduleConfig& config
+    ) {
+        // Consider requirements
+        // Check device status
+        // Apply weights
+        // Return assignment
+    }
+};</code></pre>
+            </section>
+
+            <section id="pipeline">
+                <h3>2. Pipeline Optimization</h3>
+                <pre><code class="cpp">class PipelineOptimizer {
+public:
+    struct PipelineConfig {
+        int pipeline_depth;
+        bool allow_reordering;
+        size_t buffer_size;
+        SyncStrategy sync_strategy;
+    };
+    
+    // Pipeline setup
+    Pipeline CreatePipeline(
+        const OperationGraph& graph,
+        const PipelineConfig& config
+    ) {
+        // Analyze dependencies
+        auto deps = AnalyzeDependencies(graph);
+        
+        // Create stages
+        auto stages = CreateStages(deps, config);
+        
+        // Setup buffers
+        SetupBuffers(stages, config);
+        
+        return Pipeline(stages);
+    }
+    
+private:
+    vector<Stage> CreateStages(
+        const Dependencies& deps,
+        const PipelineConfig& config
+    ) {
+        // Create pipeline stages
+        // Setup synchronization
+        // Configure buffers
+        // Return stages
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="matrix">
+            <h2>Implementation Example: Matrix Multiplication</h2>
+
+            <section id="multi-device-impl">
+                <h3>1. Multi-Device Implementation</h3>
+                <pre><code class="cpp">class MatrixMultiplication {
+public:
+    struct Config {
+        size_t split_threshold;
+        bool use_strassen;
+        DevicePreference preference;
+        TileSize tile_size;
+    };
+    
+    // Execute matrix multiplication
+    TFHEMatrix Multiply(
+        const TFHEMatrix& A,
+        const TFHEMatrix& B,
+        const Config& config
+    ) {
+        if (ShouldSplit(A, B, config)) {
+            return ExecuteSplit(A, B, config);
+        } else {
+            return ExecuteSingle(A, B, config);
+        }
+    }
+    
+private:
+    TFHEMatrix ExecuteSplit(
+        const TFHEMatrix& A,
+        const TFHEMatrix& B,
+        const Config& config
+    ) {
+        // Split matrices
+        // Assign to devices
+        // Gather results
+        // Return combined result
+    }
+};</code></pre>
+            </section>
+
+            <section id="device-specific">
+                <h3>2. Device-Specific Optimizations</h3>
+                <pre><code class="cpp">class MatrixOptimizations {
+public:
+    // CPU optimization
+    void OptimizeCPU(
+        const TFHEMatrix& matrix,
+        const CPUConfig& config
+    ) {
+        // Cache blocking
+        // SIMD vectorization
+        // Thread assignment
+        // Memory layout
+    }
+    
+    // GPU optimization
+    void OptimizeGPU(
+        const TFHEMatrix& matrix,
+        const GPUConfig& config
+    ) {
+        // Shared memory usage
+        // Warp scheduling
+        // Memory coalescing
+        // Stream management
+    }
+    
+    // FPGA optimization
+    void OptimizeFPGA(
+        const TFHEMatrix& matrix,
+        const FPGAConfig& config
+    ) {
+        // Pipeline design
+        // Memory banking
+        // DSP allocation
+        // Stream processing
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="monitoring">
+            <h2>Performance Monitoring</h2>
+
+            <section id="metrics">
+                <h3>1. Metrics Collection</h3>
+                <pre><code class="cpp">class PerformanceMonitor {
+public:
+    struct Metrics {
+        // Timing metrics
+        double computation_time;
+        double transfer_time;
+        double idle_time;
+        
+        // Resource metrics
+        float device_utilization;
+        size_t memory_usage;
+        int active_streams;
+        
+        // Operation metrics
+        int operations_completed;
+        int bootstraps_performed;
+        float noise_level;
+    };
+    
+    // Collect metrics
+    Metrics CollectMetrics(const Operation& op) {
+        // Time operation
+        // Monitor resources
+        // Track performance
+        // Return metrics
+    }
+};</code></pre>
+            </section>
+
+            <section id="feedback">
+                <h3>2. Optimization Feedback</h3>
+                <pre><code class="cpp">class OptimizationFeedback {
+public:
+    struct Feedback {
+        DeviceRecommendations device_recommendations;
+        SchedulingImprovements scheduling_improvements;
+        ResourceOptimizations resource_optimizations;
+    };
+    
+    // Generate optimization feedback
+    Feedback AnalyzePerformance(
+        const PerformanceHistory& history
+    ) {
+        // Analyze patterns
+        // Identify bottlenecks
+        // Suggest improvements
+        // Return feedback
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="considerations">
+            <h2>Implementation Considerations</h2>
+            <div class="mermaid">
+            graph TD
+                A[Implementation Considerations] --> B[Device Selection]
+                A --> C[Memory Management]
+                A --> D[Performance Optimization]
+                A --> E[Error Handling]
+                
+                B --> F[Operation characteristics]
+                B --> G[Data size and type]
+                B --> H[Memory requirements]
+                B --> I[Performance targets]
+                
+                C --> J[Transfer optimization]
+                C --> K[Unified memory usage]
+                C --> L[Cache utilization]
+                C --> M[Buffer management]
+                
+                D --> N[Pipeline efficiency]
+                D --> O[Resource utilization]
+                D --> P[Load balancing]
+                D --> Q[Synchronization overhead]
+                
+                E --> R[Device failures]
+                E --> S[Memory errors]
+                E --> T[Synchronization issues]
+                E --> U[Recovery strategies]
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            }
+        });
+    </script>
+</body>
+</html>

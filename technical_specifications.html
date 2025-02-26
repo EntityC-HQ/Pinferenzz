@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Specifications</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+            --python-keyword: #cc7832;
+            --python-string: #6a8759;
+            --python-comment: #808080;
+            --cpp-keyword: #cc7832;
+            --cpp-type: #a9b7c6;
+            --cpp-string: #6a8759;
+            --cpp-comment: #808080;
+            --erlang-atom: #cc7832;
+            --erlang-variable: #9876aa;
+            --erlang-comment: #808080;
+            --json-key: #9876aa;
+            --json-string: #6a8759;
+            --json-number: #6897bb;
+            --json-boolean: #cc7832;
+            --json-null: #cc7832;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        /* Language-specific syntax highlighting */
+        .python .keyword { color: var(--python-keyword); }
+        .python .string { color: var(--python-string); }
+        .python .comment { color: var(--python-comment); }
+        .python .function { color: #ffc66d; }
+        .python .class { color: #a9b7c6; }
+        .python .number { color: #6897bb; }
+
+        .cpp .keyword { color: var(--cpp-keyword); }
+        .cpp .type { color: var(--cpp-type); }
+        .cpp .string { color: var(--cpp-string); }
+        .cpp .comment { color: var(--cpp-comment); }
+        .cpp .function { color: #ffc66d; }
+        .cpp .number { color: #6897bb; }
+
+        .erlang .atom { color: var(--erlang-atom); }
+        .erlang .variable { color: var(--erlang-variable); }
+        .erlang .comment { color: var(--erlang-comment); }
+        .erlang .function { color: #ffc66d; }
+
+        .json .key { color: var(--json-key); }
+        .json .string { color: var(--json-string); }
+        .json .number { color: var(--json-number); }
+        .json .boolean { color: var(--json-boolean); }
+        .json .null { color: var(--json-null); }
+
+        /* Component cards */
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .component-card {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .component-title {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#components">Component Specifications</a>
+                <ul>
+                    <li><a href="#tfhe">TFHE Device</a></li>
+                    <li><a href="#tvm">TVM Integration</a></li>
+                    <li><a href="#hardware">Hardware Layer</a></li>
+                </ul>
+            </li>
+            <li><a href="#optimization">Performance Optimization</a>
+                <ul>
+                    <li><a href="#classification">Operation Classification</a></li>
+                    <li><a href="#memory">Memory Hierarchy</a></li>
+                    <li><a href="#techniques">Optimization Techniques</a></li>
+                    <li><a href="#adaptation">Dynamic Adaptation</a></li>
+                </ul>
+            </li>
+            <li><a href="#protocols">Message Protocols</a>
+                <ul>
+                    <li><a href="#basic">Basic Structure</a></li>
+                    <li><a href="#operations">Operation Formats</a></li>
+                    <li><a href="#responses">Response Formats</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Technical Specifications</h1>
+
+        <section id="components">
+            <h2>Component Specifications</h2>
+
+            <section id="tfhe">
+                <h3>1. TFHE Device (`~tfhe@1.0`)</h3>
+                
+                <h4>Core Components</h4>
+                <div class="mermaid">
+                graph TD
+                    A[TFHE Device] --> B[Key Manager]
+                    A --> C[Operation Handler]
+                    A --> D[State Manager]
+                    A --> E[TVM Interface]
+                    
+                    B --> F[Key Generation]
+                    B --> G[Key Distribution]
+                    
+                    C --> H[Matrix Operations]
+                    C --> I[Vector Operations]
+                    C --> J[Bootstrapping]
+                    
+                    D --> K[Memory Management]
+                    D --> L[State Persistence]
+                    
+                    E --> M[Backend Selection]
+                    E --> N[Operation Scheduling]
+                </div>
+
+                <h4>Implementation Details</h4>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Key Management</div>
+                        <pre data-language="Erlang" class="erlang"><code>-record(tfhe_keys, {
+    secret_key,
+    public_key,
+    evaluation_key,
+    rotation_keys,
+    bootstrapping_key
+}).
+
+-record(key_config, {
+    security_level,     % 128, 192, or 256 bits
+    polynomial_degree,  % typically 1024, 2048, or 4096
+    plaintext_modulus,
+    ciphertext_modulus
+}).</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Operation Handlers</div>
+                        <pre data-language="Erlang" class="erlang"><code>-callback handle_operation(Operation :: atom(), 
+                         Params :: map(), 
+                         State :: #tfhe_state{}) ->
+    {ok, Result :: term(), NewState :: #tfhe_state{}} |
+    {error, Reason :: term()}.
+
+% Example operations
+-spec matrix_multiply(Matrix1, Matrix2, Config) -> Result.
+-spec vector_add(Vector1, Vector2, Config) -> Result.
+-spec bootstrap(Ciphertext, Config) -> Result.</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">State Management</div>
+                        <pre data-language="Erlang" class="erlang"><code>-record(tfhe_state, {
+    keys :: #tfhe_keys{},
+    parameters :: #parameters{},
+    memory_manager :: pid(),
+    hardware_state :: map(),
+    cache :: ets:tid(),
+    metrics :: #metrics{}
+}).</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tvm">
+                <h3>2. TVM Integration</h3>
+                <div class="mermaid">
+                graph TD
+                    A[TVM Layer] --> B[Compiler]
+                    A --> C[Runtime]
+                    A --> D[Scheduler]
+                    
+                    B --> E[Graph Optimization]
+                    B --> F[Code Generation]
+                    
+                    C --> G[Memory Management]
+                    C --> H[Execution Engine]
+                    
+                    D --> I[Operation Scheduling]
+                    D --> J[Resource Allocation]
+                </div>
+
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Compiler Integration</div>
+                        <pre data-language="Python" class="python"><code>def compile_tfhe_op(op_desc, target):
+    """
+    Compile TFHE operation for target hardware
+    
+    Args:
+        op_desc: Operation descriptor
+        target: Hardware target (cpu/gpu/fpga)
+    
+    Returns:
+        Compiled operation handle
+    """
+    pass
+
+class TFHECompute(relay.Op):
+    """TVM relay operator for TFHE operations"""
+    def __init__(self):
+        self.compute = tvm.compute(...)
+        self.schedule = tvm.create_schedule(...)</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Runtime Management</div>
+                        <pre data-language="C++" class="cpp"><code>struct TFHERuntime {
+    // Memory management
+    MemoryPool* pool;
+    
+    // Hardware contexts
+    CPUContext cpu_ctx;
+    GPUContext gpu_ctx;
+    FPGAContext fpga_ctx;
+    
+    // Operation cache
+    OpCache cache;
+    
+    // Performance metrics
+    Metrics metrics;
+};</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Hardware Abstraction</div>
+                        <pre data-language="C++" class="cpp"><code>class HardwareBackend {
+public:
+    virtual void Initialize() = 0;
+    virtual void Execute(Operation* op) = 0;
+    virtual void Synchronize() = 0;
+    virtual void Cleanup() = 0;
+    
+protected:
+    MemoryManager mem_mgr_;
+    Scheduler scheduler_;
+    MetricsCollector metrics_;
+};</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="hardware">
+                <h3>3. Hardware Layer</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Hardware Manager] --> B[CPU Backend]
+                    A --> C[GPU Backend]
+                    A --> D[FPGA Backend]
+                    
+                    B --> E[CPU Kernels]
+                    C --> F[CUDA Kernels]
+                    D --> G[FPGA Bitstreams]
+                    
+                    H[Memory Manager] --> I[Memory Pool]
+                    H --> J[Cache Manager]
+                    
+                    K[Scheduler] --> L[Operation Queue]
+                    K --> M[Resource Monitor]
+                </div>
+
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Memory Management</div>
+                        <pre data-language="C++" class="cpp"><code>class MemoryManager {
+public:
+    // Memory allocation strategies
+    void* AllocateUnified(size_t size);
+    void* AllocateDevice(size_t size, DeviceType dev);
+    void* AllocateHost(size_t size);
+    
+    // Memory transfer
+    void CopyHostToDevice(void* dst, void* src, size_t size);
+    void CopyDeviceToHost(void* dst, void* src, size_t size);
+    
+    // Memory pool management
+    void GarbageCollect();
+    void Defragment();
+    
+private:
+    MemoryPool host_pool_;
+    MemoryPool device_pool_;
+    CacheManager cache_;
+};</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Operation Scheduling</div>
+                        <pre data-language="C++" class="cpp"><code>struct OperationDesc {
+    OpType type;
+    std::vector<Tensor*> inputs;
+    std::vector<Tensor*> outputs;
+    DevicePreference device_pref;
+    SchedulingPriority priority;
+};
+
+class Scheduler {
+public:
+    void SubmitOperation(OperationDesc* op);
+    void WaitForCompletion();
+    void OptimizeBatch(std::vector<OperationDesc*>& ops);
+    
+private:
+    std::priority_queue<OperationDesc*> op_queue_;
+    ResourceMonitor resource_monitor_;
+    LoadBalancer load_balancer_;
+};</code></pre>
+                    </div>
+                </div>
+
+                <h4>Hardware-Specific Optimizations</h4>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">CPU Backend</div>
+                        <pre data-language="C++" class="cpp"><code>class CPUBackend : public HardwareBackend {
+public:
+    void Initialize() override {
+        // Set up thread pool
+        // Configure SIMD operations
+        // Initialize memory allocators
+    }
+    
+    void Execute(Operation* op) override {
+        // Thread assignment
+        // SIMD dispatch
+        // Cache optimization
+    }
+};</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">GPU Backend</div>
+                        <pre data-language="C++" class="cpp"><code>class GPUBackend : public HardwareBackend {
+public:
+    void Initialize() override {
+        // Initialize CUDA context
+        // Set up stream management
+        // Configure memory pools
+    }
+    
+    void Execute(Operation* op) override {
+        // Kernel selection
+        // Stream assignment
+        // Async execution
+    }
+};</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">FPGA Backend</div>
+                        <pre data-language="C++" class="cpp"><code>class FPGABackend : public HardwareBackend {
+public:
+    void Initialize() override {
+        // Load bitstreams
+        // Configure DMA engines
+        // Set up command queues
+    }
+    
+    void Execute(Operation* op) override {
+        // Bitstream selection
+        // DMA transfer
+        // Hardware execution
+    }
+};</code></pre>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="optimization">
+            <h2>Performance Optimization Strategy</h2>
+
+            <section id="classification">
+                <h3>1. Operation Classification</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Operation Analysis] --> B[Compute Bound]
+                    A --> C[Memory Bound]
+                    A --> D[Communication Bound]
+                    
+                    B --> E[GPU Priority]
+                    C --> F[CPU/FPGA Priority]
+                    D --> G[Hardware Co-location]
+                </div>
+            </section>
+
+            <section id="memory">
+                <h3>2. Memory Hierarchy</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Memory System] --> B[L1 Cache]
+                    A --> C[L2 Cache]
+                    A --> D[Main Memory]
+                    A --> E[GPU Memory]
+                    A --> F[FPGA Memory]
+                    
+                    B --> G[Thread-Local]
+                    C --> H[Shared Cache]
+                    D --> I[System Memory]
+                    E --> J[Device Memory]
+                    F --> K[Block RAM]
+                </div>
+            </section>
+
+            <section id="techniques">
+                <h3>3. Optimization Techniques</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Compute Optimization</div>
+                        <pre data-language="Python" class="python"><code>class ComputeOptimizer:
+    def __init__(self):
+        self.strategies = {
+            'matrix_mult': self.optimize_matmul,
+            'vector_ops': self.optimize_vector,
+            'bootstrap': self.optimize_bootstrap
+        }
+    
+    def optimize_matmul(self, op):
+        # Tiling optimization
+        # Thread assignment
+        # SIMD utilization
+        pass
+    
+    def optimize_vector(self, op):
+        # Vectorization
+        # Cache alignment
+        # Stream processing
+        pass
+    
+    def optimize_bootstrap(self, op):
+        # Pipeline optimization
+        # Memory layout
+        # Hardware selection
+        pass</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Memory Optimization</div>
+                        <pre data-language="C++" class="cpp"><code>class MemoryOptimizer {
+public:
+    void OptimizeLayout(Tensor* tensor) {
+        // Analyze access patterns
+        // Choose optimal layout
+        // Apply padding/alignment
+    }
+    
+    void OptimizeTransfers(Operation* op) {
+        // Minimize data movement
+        // Overlap computation
+        // Use unified memory
+    }
+    
+    void OptimizeCaching(Operation* op) {
+        // Set cache policy
+        // Prefetch data
+        // Manage working set
+    }
+};</code></pre>
+                    </div>
+                </div>
+
+                <h4>Hardware-Specific Optimizations</h4>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">GPU Optimization</div>
+                        <pre data-language="C++" class="cpp"><code>class GPUOptimizer {
+public:
+    void OptimizeKernel(Kernel* kernel) {
+        // Thread block sizing
+        // Shared memory usage
+        // Register pressure
+    }
+    
+    void OptimizeMemory(Operation* op) {
+        // Coalesced access
+        // Shared memory usage
+        // Bank conflict avoidance
+    }
+};</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">FPGA Optimization</div>
+                        <pre data-language="C++" class="cpp"><code>class FPGAOptimizer {
+public:
+    void OptimizePipeline(Operation* op) {
+        // Pipeline depth
+        // Resource utilization
+        // Clock frequency
+    }
+    
+    void OptimizeMemory(Operation* op) {
+        // BRAM utilization
+        // DMA burst size
+        // Memory banking
+    }
+};</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="adaptation">
+                <h3>4. Dynamic Adaptation</h3>
+                <pre data-language="Python" class="python"><code>class AdaptiveOptimizer:
+    def __init__(self):
+        self.performance_monitor = PerformanceMonitor()
+        self.resource_monitor = ResourceMonitor()
+        self.strategy_selector = StrategySelector()
+    
+    def adapt_execution(self, operation):
+        # Monitor current performance
+        metrics = self.performance_monitor.get_metrics()
+        
+        # Check resource availability
+        resources = self.resource_monitor.get_status()
+        
+        # Select optimal strategy
+        strategy = self.strategy_selector.select(
+            operation, metrics, resources)
+        
+        # Apply optimization
+        return self.apply_strategy(operation, strategy)</code></pre>
+            </section>
+        </section>
+
+        <section id="protocols">
+            <h2>Message Protocols</h2>
+
+            <section id="basic">
+                <h3>1. Basic Message Structure</h3>
+                <pre data-language="JSON" class="json"><code>{
+    "device": "tfhe@1.0",
+    "operation": {
+        "type": "matrix_multiply",
+        "id": "op_123",
+        "priority": 1
+    },
+    "parameters": {
+        "input_a": {
+            "data": "<encrypted_tensor>",
+            "shape": [1024, 1024],
+            "precision": "high"
+        },
+        "input_b": {
+            "data": "<encrypted_tensor>",
+            "shape": [1024, 1024],
+            "precision": "high"
+        }
+    },
+    "configuration": {
+        "hardware_preference": "gpu",
+        "optimization_level": "aggressive",
+        "memory_policy": "unified"
+    }
+}</code></pre>
+            </section>
+
+            <section id="operations">
+                <h3>2. Operation-Specific Formats</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Matrix Operations</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "operation": "matrix_multiply",
+    "parameters": {
+        "input_a": {
+            "data": "<encrypted_tensor>",
+            "shape": [M, K],
+            "layout": "row_major"
+        },
+        "input_b": {
+            "data": "<encrypted_tensor>",
+            "shape": [K, N],
+            "layout": "column_major"
+        },
+        "output": {
+            "shape": [M, N],
+            "precision": "high"
+        }
+    }
+}</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Bootstrapping Operation</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "operation": "bootstrap",
+    "parameters": {
+        "input": {
+            "data": "<encrypted_tensor>",
+            "noise_level": "high"
+        },
+        "configuration": {
+            "method": "circuit",
+            "precision": "high",
+            "hardware": "fpga"
+        }
+    }
+}</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Key Management</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "operation": "key_generation",
+    "parameters": {
+        "security_level": 128,
+        "polynomial_degree": 1024,
+        "plaintext_modulus": 1024,
+        "key_type": ["secret", "public", "evaluation"]
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="responses">
+                <h3>3. Response Formats</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-title">Success Response</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "status": "success",
+    "operation_id": "op_123",
+    "result": {
+        "data": "<encrypted_result>",
+        "metadata": {
+            "shape": [1024, 1024],
+            "precision": "high",
+            "noise_level": "low"
+        }
+    },
+    "performance": {
+        "execution_time": 1234,
+        "memory_used": 1048576,
+        "hardware_used": "gpu"
+    }
+}</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Error Response</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "status": "error",
+    "operation_id": "op_123",
+    "error": {
+        "code": "HARDWARE_ERROR",
+        "message": "GPU memory exhausted",
+        "details": {
+            "requested": 1048576,
+            "available": 524288
+        }
+    }
+}</code></pre>
+                    </div>
+                    <div class="component-card">
+                        <div class="component-title">Progress Update</div>
+                        <pre data-language="JSON" class="json"><code>{
+    "status": "in_progress",
+    "operation_id": "op_123",
+    "progress": {
+        "percentage": 45,
+        "current_stage": "bootstrapping",
+        "estimated_completion": 1234567890
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            }
+        });
+
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((block) => {
+            const language = block.parentElement.getAttribute('data-language').toLowerCase();
+            block.classList.add(language);
+        });
+    </script>
+</body>
+</html>

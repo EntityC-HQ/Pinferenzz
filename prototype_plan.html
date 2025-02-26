@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial Prototype Plan</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+            --python-keyword: #cc7832;
+            --python-string: #6a8759;
+            --python-comment: #808080;
+            --cpp-keyword: #cc7832;
+            --cpp-type: #a9b7c6;
+            --cpp-string: #6a8759;
+            --cpp-comment: #808080;
+            --erlang-atom: #cc7832;
+            --erlang-variable: #9876aa;
+            --erlang-comment: #808080;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        /* Python syntax highlighting */
+        .python .keyword { color: var(--python-keyword); }
+        .python .string { color: var(--python-string); }
+        .python .comment { color: var(--python-comment); }
+        .python .function { color: #ffc66d; }
+        .python .class { color: #a9b7c6; }
+        .python .number { color: #6897bb; }
+
+        /* C++ syntax highlighting */
+        .cpp .keyword { color: var(--cpp-keyword); }
+        .cpp .type { color: var(--cpp-type); }
+        .cpp .string { color: var(--cpp-string); }
+        .cpp .comment { color: var(--cpp-comment); }
+        .cpp .function { color: #ffc66d; }
+        .cpp .number { color: #6897bb; }
+
+        /* Erlang syntax highlighting */
+        .erlang .atom { color: var(--erlang-atom); }
+        .erlang .variable { color: var(--erlang-variable); }
+        .erlang .comment { color: var(--erlang-comment); }
+        .erlang .function { color: #ffc66d; }
+
+        /* Timeline styling */
+        .timeline {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border-left: 2px solid var(--accent-color);
+        }
+
+        .timeline-date {
+            min-width: 120px;
+            color: var(--accent-color);
+        }
+
+        .timeline-content {
+            margin-left: 1rem;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#phase1">Phase 1: Core TFHE Device</a>
+                <ul>
+                    <li><a href="#key-components">Key Components</a></li>
+                </ul>
+            </li>
+            <li><a href="#phase2">Phase 2: Performance Baseline</a>
+                <ul>
+                    <li><a href="#benchmarks">Benchmark Suite</a></li>
+                </ul>
+            </li>
+            <li><a href="#phase3">Phase 3: GPU Integration</a>
+                <ul>
+                    <li><a href="#gpu-impl">GPU Implementation</a></li>
+                </ul>
+            </li>
+            <li><a href="#metrics">Critical Success Metrics</a>
+                <ul>
+                    <li><a href="#functionality">Functionality</a></li>
+                    <li><a href="#performance">Performance</a></li>
+                    <li><a href="#integration">Integration</a></li>
+                </ul>
+            </li>
+            <li><a href="#testing">Testing Strategy</a>
+                <ul>
+                    <li><a href="#unit-tests">Unit Tests</a></li>
+                    <li><a href="#integration-tests">Integration Tests</a></li>
+                </ul>
+            </li>
+            <li><a href="#goals">Prototype Goals</a></li>
+            <li><a href="#risks">Risk Mitigation</a></li>
+            <li><a href="#next-steps">Next Steps</a></li>
+            <li><a href="#timeline">Timeline</a></li>
+            <li><a href="#resources">Resource Requirements</a></li>
+            <li><a href="#success">Success Criteria</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>Initial Prototype Plan</h1>
+
+        <p>This document outlines the critical first steps to validate the architecture through a minimal viable prototype. This is the most important next step to validate our assumptions and identify potential challenges early.</p>
+
+        <section id="phase1">
+            <h2>Phase 1: Core TFHE Device (4-6 weeks)</h2>
+            <div class="mermaid">
+            graph TD
+                A[Core TFHE Device] --> B[Basic Operations]
+                A --> C[TVM Integration]
+                A --> D[Device Interface]
+                
+                B --> E[Matrix Ops]
+                B --> F[Bootstrapping]
+                
+                C --> G[CPU Backend]
+                C --> H[Basic Compiler]
+                
+                D --> I[Message Handling]
+                D --> J[State Management]
+            </div>
+
+            <section id="key-components">
+                <h3>Key Components to Prototype</h3>
+                <h4>1. Basic TFHE Operations</h4>
+                <pre data-language="Erlang" class="erlang"><code>-module(tfhe_core).
+-export([init/1, matrix_multiply/2, bootstrap/1]).
+
+% Minimal state for prototype
+-record(tfhe_state, {
+    keys :: basic_keys(),
+    parameters :: basic_params(),
+    memory :: memory_ref()
+}).
+
+% Essential operations only
+basic_operations() -> [
+    matrix_multiply,
+    vector_add,
+    bootstrap
+].</code></pre>
+                <h4>2. TVM Integration</h4>
+                <pre data-language="Python" class="python"><code>def setup_tvm_prototype():
+    """
+    Minimal TVM setup for prototype
+    - CPU-only initially
+    - Basic operation compilation
+    - Simple memory management
+    """
+    # Basic TVM configuration
+    config = {
+        "target": "llvm",
+        "optimization_level": 2
+    }
+    
+    # Essential operations
+    ops = {
+        "matrix_multiply": compile_matrix_op(),
+        "bootstrap": compile_bootstrap_op()
+    }
+    
+    return TVMPrototype(config, ops)</code></pre>
+
+                <h4>3. HyperBEAM Device Interface</h4>
+                <pre data-language="Erlang" class="erlang"><code>-module(tfhe_device).
+-behavior(hyperbeam_device).
+
+% Minimal device implementation
+-export([init/1, handle_message/2]).
+
+handle_message(#{operation := Op} = Msg, State) ->
+    case Op of
+        matrix_multiply ->
+            handle_matrix_op(Msg, State);
+        bootstrap ->
+            handle_bootstrap_op(Msg, State);
+        _ ->
+            {error, not_implemented}
+    end.</code></pre>
+            </section>
+        </section>
+
+        <section id="phase2">
+            <h2>Phase 2: Performance Baseline (2-3 weeks)</h2>
+            <div class="mermaid">
+            graph TD
+                A[Performance Testing] --> B[Operation Benchmarks]
+                A --> C[Memory Analysis]
+                A --> D[Bottleneck Detection]
+                
+                B --> E[Matrix Operations]
+                B --> F[Bootstrapping]
+                
+                C --> G[Memory Usage]
+                C --> H[Transfer Costs]
+                
+                D --> I[CPU Profiling]
+                D --> J[Memory Profiling]
+            </div>
+
+            <section id="benchmarks">
+                <h3>Benchmark Suite</h3>
+                <pre data-language="Python" class="python"><code>class PerformanceBenchmark:
+    def __init__(self):
+        self.operations = {
+            "matrix_multiply": self.bench_matrix,
+            "bootstrap": self.bench_bootstrap
+        }
+        self.metrics = MetricsCollector()
+    
+    def bench_matrix(self, sizes):
+        results = []
+        for size in sizes:
+            # Test different matrix sizes
+            # Measure execution time
+            # Monitor memory usage
+            # Record metrics
+            results.append(measure_operation(size))
+        return results
+    
+    def bench_bootstrap(self, configs):
+        results = []
+        for config in configs:
+            # Test different noise levels
+            # Measure execution time
+            # Monitor memory usage
+            # Record metrics
+            results.append(measure_bootstrap(config))
+        return results</code></pre>
+            </section>
+        </section>
+
+        <section id="phase3">
+            <h2>Phase 3: GPU Integration (3-4 weeks)</h2>
+            <div class="mermaid">
+            graph TD
+                A[GPU Integration] --> B[CUDA Operations]
+                A --> C[Memory Management]
+                A --> D[Performance Testing]
+                
+                B --> E[Matrix Ops on GPU]
+                B --> F[Memory Transfer]
+                
+                C --> G[Unified Memory]
+                C --> H[Streaming]
+                
+                D --> I[GPU vs CPU]
+                D --> J[Bottleneck Analysis]
+            </div>
+
+            <section id="gpu-impl">
+                <h3>GPU Implementation</h3>
+                <pre data-language="C++" class="cpp"><code>class GPUPrototype {
+public:
+    struct Config {
+        bool use_unified_memory;
+        int max_streams;
+        size_t memory_limit;
+    };
+    
+    // Essential GPU operations
+    Status matrix_multiply_gpu(
+        const Matrix& A,
+        const Matrix& B,
+        Matrix& C
+    ) {
+        // Allocate GPU memory
+        // Transfer inputs
+        // Execute kernel
+        // Transfer result
+        // Measure performance
+    }
+    
+    // Memory management
+    class MemoryManager {
+        // Unified memory handling
+        // Stream management
+        // Memory pool
+    };
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="metrics">
+            <h2>Critical Success Metrics</h2>
+
+            <section id="functionality">
+                <h3>1. Functionality</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Core Operations</div>
+                        <ul>
+                            <li>Basic matrix operations working correctly</li>
+                            <li>Bootstrapping operating within noise parameters</li>
+                            <li>Message handling functioning properly</li>
+                            <li>State management working correctly</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="performance">
+                <h3>2. Performance</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Performance Metrics</div>
+                        <ul>
+                            <li>Matrix operation latency</li>
+                            <li>Bootstrapping performance</li>
+                            <li>Memory usage patterns</li>
+                            <li>GPU vs CPU performance ratio</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="integration">
+                <h3>3. Integration</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Integration Metrics</div>
+                        <ul>
+                            <li>TVM compilation working</li>
+                            <li>Device message handling</li>
+                            <li>Memory management effectiveness</li>
+                            <li>GPU integration success</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section id="testing">
+            <h2>Testing Strategy</h2>
+
+            <section id="unit-tests">
+                <h3>1. Unit Tests</h3>
+                <pre data-language="Erlang" class="erlang"><code>-module(tfhe_device_tests).
+-include_lib("eunit/include/eunit.hrl").
+
+matrix_multiply_test() ->
+    % Test basic matrix multiplication
+    % Verify results
+    % Check performance
+    ok.
+
+bootstrap_test() ->
+    % Test bootstrapping operation
+    % Verify noise levels
+    % Check performance
+    ok.</code></pre>
+            </section>
+
+            <section id="integration-tests">
+                <h3>2. Integration Tests</h3>
+                <pre data-language="Erlang" class="erlang"><code>-module(tfhe_integration_tests).
+
+device_stack_test() ->
+    % Test device in stack
+    % Verify message flow
+    % Check state management
+    ok.
+
+gpu_integration_test() ->
+    % Test GPU operations
+    % Verify memory management
+    % Check performance
+    ok.</code></pre>
+            </section>
+        </section>
+
+        <section id="goals">
+            <h2>Prototype Goals</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">1. Validate Core Architecture</div>
+                    <ul>
+                        <li>TFHE operations correctness</li>
+                        <li>TVM integration feasibility</li>
+                        <li>Device interface effectiveness</li>
+                        <li>Memory management strategy</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">2. Performance Understanding</div>
+                    <ul>
+                        <li>Operation latency baselines</li>
+                        <li>Memory usage patterns</li>
+                        <li>GPU acceleration potential</li>
+                        <li>Bottleneck identification</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">3. Integration Validation</div>
+                    <ul>
+                        <li>HyperBEAM compatibility</li>
+                        <li>Message handling efficiency</li>
+                        <li>State management effectiveness</li>
+                        <li>Hardware acceleration viability</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="risks">
+            <h2>Risk Mitigation</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">1. Technical Risks</div>
+                    <ul>
+                        <li>Start with CPU-only implementation</li>
+                        <li>Implement basic operations first</li>
+                        <li>Use simple memory management</li>
+                        <li>Add features incrementally</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">2. Performance Risks</div>
+                    <ul>
+                        <li>Establish baselines early</li>
+                        <li>Monitor memory usage</li>
+                        <li>Profile critical paths</li>
+                        <li>Identify bottlenecks quickly</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">3. Integration Risks</div>
+                    <ul>
+                        <li>Test device interface early</li>
+                        <li>Verify message handling</li>
+                        <li>Validate state management</li>
+                        <li>Check hardware compatibility</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="next-steps">
+            <h2>Next Steps After Prototype</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">1. Architecture Refinement</div>
+                    <ul>
+                        <li>Optimize critical paths</li>
+                        <li>Enhance memory management</li>
+                        <li>Improve GPU utilization</li>
+                        <li>Add advanced features</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">2. Performance Enhancement</div>
+                    <ul>
+                        <li>Implement advanced optimizations</li>
+                        <li>Add FPGA support</li>
+                        <li>Enhance GPU operations</li>
+                        <li>Optimize memory usage</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">3. Feature Expansion</div>
+                    <ul>
+                        <li>Add advanced operations</li>
+                        <li>Implement full feature set</li>
+                        <li>Enhance security features</li>
+                        <li>Add monitoring capabilities</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline">
+            <h2>Timeline</h2>
+            <div class="mermaid">
+            gantt
+                title Prototype Development Timeline
+                dateFormat YYYY-MM-DD
+                section Core Development
+                TFHE Core Implementation   :2025-05-01, 4w
+                Basic TVM Integration     :2025-05-15, 2w
+                Device Interface         :2025-06-01, 2w
+                
+                section Performance
+                CPU Benchmarking        :2025-06-15, 2w
+                Memory Analysis         :2025-07-01, 1w
+                
+                section GPU Integration
+                Basic GPU Operations    :2025-07-15, 2w
+                Memory Management       :2025-08-01, 1w
+                Performance Testing     :2025-08-15, 1w
+            </div>
+        </section>
+
+        <section id="resources">
+            <h2>Resource Requirements</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">1. Development Hardware</div>
+                    <ul>
+                        <li>High-end development workstation</li>
+                        <li>NVIDIA GPU (A4000 or better)</li>
+                        <li>Fast storage system</li>
+                        <li>Development tools</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">2. Software Requirements</div>
+                    <ul>
+                        <li>TVM development environment</li>
+                        <li>CUDA toolkit</li>
+                        <li>Profiling tools</li>
+                        <li>Testing framework</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">3. Personnel</div>
+                    <ul>
+                        <li>1-2 core developers</li>
+                        <li>Part-time GPU specialist</li>
+                        <li>Testing support</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="success">
+            <h2>Success Criteria</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">1. Functional Requirements</div>
+                    <ul>
+                        <li>All basic operations working</li>
+                        <li>Correct results verified</li>
+                        <li>State management functional</li>
+                        <li>Message handling working</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">2. Performance Requirements</div>
+                    <ul>
+                        <li>Matrix operations within 2x baseline</li>
+                        <li>Bootstrapping within 3x baseline</li>
+                        <li>Memory usage within budget</li>
+                        <li>GPU showing improvement</li>
+                    </ul>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">3. Integration Requirements</div>
+                    <ul>
+                        <li>Device properly integrated</li>
+                        <li>Message flow working</li>
+                        <li>State properly managed</li>
+                        <li>Hardware acceleration functional</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>This prototype phase is critical for:</p>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Key Outcomes</div>
+                    <ol>
+                        <li>Validating core architecture decisions</li>
+                        <li>Understanding performance characteristics</li>
+                        <li>Identifying potential issues early</li>
+                        <li>Establishing development patterns</li>
+                    </ol>
+                </div>
+            </div>
+            <p>The focus is on building a minimal but functional system that can validate our key assumptions and provide a solid foundation for the full implementation.</p>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                sidePadding: 75
+            }
+        });
+
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((block) => {
+            const language = block.parentElement.getAttribute('data-language').toLowerCase();
+            block.classList.add(language);
+        });
+    </script>
+</body>
+</html>

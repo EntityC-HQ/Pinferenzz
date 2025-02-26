@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFHE Operations in TVM Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --accent-color: #ff3333;
+            --secondary-bg: #1a1a1a;
+            --border-color: #333;
+            --table-hover: #1f1f1f;
+            --code-bg: #141414;
+            --python-keyword: #cc7832;
+            --python-string: #6a8759;
+            --python-comment: #808080;
+            --cpp-keyword: #cc7832;
+            --cpp-type: #a9b7c6;
+            --cpp-string: #6a8759;
+            --cpp-comment: #808080;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+        }
+
+        .menu {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-bg);
+            padding: 2rem 1rem;
+            position: fixed;
+            border-right: 2px solid var(--accent-color);
+            overflow-y: auto;
+        }
+
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .menu li {
+            margin: 0.5rem 0;
+        }
+
+        .menu ul ul {
+            margin-left: 1rem;
+            font-size: 0.9em;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .menu .active {
+            color: var(--accent-color);
+            border-left: 2px solid var(--accent-color);
+            padding-left: calc(0.5rem - 2px);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Agency FB';
+            src: local('Agency FB Bold'), local('AgencyFB-Bold');
+            font-weight: bold;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Agency FB', sans-serif;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1.5rem 0 1rem;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '_';
+            position: absolute;
+            opacity: 1;
+            animation: blink 1s infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .mermaid {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Code block styling */
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        pre::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            background: var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        /* Language-specific syntax highlighting */
+        .python .keyword { color: var(--python-keyword); }
+        .python .string { color: var(--python-string); }
+        .python .comment { color: var(--python-comment); }
+        .python .function { color: #ffc66d; }
+        .python .class { color: #a9b7c6; }
+        .python .number { color: #6897bb; }
+
+        .cpp .keyword { color: var(--cpp-keyword); }
+        .cpp .type { color: var(--cpp-type); }
+        .cpp .string { color: var(--cpp-string); }
+        .cpp .comment { color: var(--cpp-comment); }
+        .cpp .function { color: #ffc66d; }
+        .cpp .number { color: #6897bb; }
+
+        /* Feature cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-title {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .menu {
+                width: 200px;
+            }
+            .content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="#type-system">Type System Integration</a>
+                <ul>
+                    <li><a href="#native-integer">Native Integer Support</a></li>
+                    <li><a href="#operation-optimization">Operation Optimization</a></li>
+                </ul>
+            </li>
+            <li><a href="#core-operations">Core Integer Operations</a>
+                <ul>
+                    <li><a href="#basic-arithmetic">Basic Arithmetic</a></li>
+                    <li><a href="#batch-operations">Batch Operations</a></li>
+                </ul>
+            </li>
+            <li><a href="#float-layer">Float Emulation Layer</a>
+                <ul>
+                    <li><a href="#float-representation">Float Representation</a></li>
+                    <li><a href="#conversion">Conversion Operations</a></li>
+                </ul>
+            </li>
+            <li><a href="#optimizations">Performance Optimizations</a>
+                <ul>
+                    <li><a href="#integer-optimizations">Integer-Specific</a></li>
+                    <li><a href="#implementation">Implementation Strategy</a></li>
+                </ul>
+            </li>
+            <li><a href="#hardware">Hardware Acceleration</a>
+                <ul>
+                    <li><a href="#integer-hardware">Integer-Optimized Hardware</a></li>
+                    <li><a href="#memory">Memory Management</a></li>
+                </ul>
+            </li>
+            <li><a href="#benefits">Integration Benefits</a></li>
+            <li><a href="#considerations">Implementation Considerations</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <a href="index.html" style="display: inline-block; color: var(--accent-color); text-decoration: none; margin-bottom: 2rem; padding: 0.5rem 1rem; border: 1px solid var(--accent-color); border-radius: 4px; transition: all 0.3s ease;">
+            ← Back to Home
+        </a>
+        <h1>TFHE Operations in TVM Integration</h1>
+
+        <section id="type-system">
+            <h2>Type System Integration</h2>
+            <div class="mermaid">
+            graph TD
+                A[TFHE Types] --> B[Integer Operations]
+                A --> C[Type Conversion]
+                A --> D[Optimization Layer]
+                
+                B --> E[Direct Integer Ops]
+                B --> F[Batched Operations]
+                
+                C --> G[Integer to Float]
+                C --> H[Float to Integer]
+                
+                D --> I[Operation Selection]
+                D --> J[Hardware Routing]
+            </div>
+
+            <section id="native-integer">
+                <h3>1. Native Integer Support</h3>
+                <pre data-language="C++" class="cpp"><code>class TFHEIntegerType : public TVMDataType {
+public:
+    enum class Precision {
+        INT32 = 32,
+        INT64 = 64,
+        INT128 = 128
+    };
+    
+    struct Parameters {
+        Precision precision;
+        bool is_signed;
+        uint32_t num_bits;
+    };
+    
+    // Type registration with TVM
+    static DataType Register(const Parameters& params) {
+        return TVMDataType::Register(
+            "tfhe.int",
+            params.precision,
+            params.is_signed
+        );
+    }
+};</code></pre>
+            </section>
+
+            <section id="operation-optimization">
+                <h3>2. Operation Optimization</h3>
+                <pre data-language="C++" class="cpp"><code>class IntegerOperationOptimizer {
+public:
+    struct OpCharacteristics {
+        bool requires_bootstrapping;
+        size_t noise_growth;
+        size_t depth_increase;
+    };
+    
+    // Operation optimization
+    OperationPlan OptimizeOperation(
+        const Operation& op,
+        const TFHEIntegerType& type
+    ) {
+        // Analyze operation characteristics
+        auto chars = AnalyzeOperation(op);
+        
+        // Select optimal implementation
+        if (chars.requires_bootstrapping) {
+            return CreateBootstrappingPlan(op, type);
+        } else {
+            return CreateDirectPlan(op, type);
+        }
+    }
+    
+private:
+    OperationPlan CreateBootstrappingPlan(
+        const Operation& op,
+        const TFHEIntegerType& type
+    ) {
+        // Plan bootstrapping points
+        // Optimize operation sequence
+        // Schedule hardware resources
+    }
+    
+    OperationPlan CreateDirectPlan(
+        const Operation& op,
+        const TFHEIntegerType& type
+    ) {
+        // Optimize direct computation
+        // Plan resource usage
+        // Schedule execution
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="core-operations">
+            <h2>Core Integer Operations</h2>
+
+            <section id="basic-arithmetic">
+                <h3>1. Basic Arithmetic</h3>
+                <pre data-language="Python" class="python"><code>def register_integer_ops():
+    """Register TFHE integer operations with TVM"""
+    return {
+        "add": register_add_op(),
+        "subtract": register_subtract_op(),
+        "multiply": register_multiply_op(),
+        "divide": register_divide_op(),
+        "compare": register_compare_op()
+    }
+
+def register_add_op():
+    """
+    Register integer addition operation
+    - Direct ciphertext addition
+    - No bootstrapping required
+    - Parallelizable
+    """
+    return tvm.op.register_op("tfhe.int.add")(
+        compute=lambda A, B: tvm.compute(
+            A.shape,
+            lambda *i: tfhe_add(A[i], B[i]),
+            name="tfhe_int_add"
+        )
+    )
+
+def register_multiply_op():
+    """
+    Register integer multiplication
+    - Requires noise management
+    - Optional bootstrapping
+    - Hardware acceleration friendly
+    """
+    return tvm.op.register_op("tfhe.int.multiply")(
+        compute=lambda A, B: tvm.compute(
+            A.shape,
+            lambda *i: tfhe_multiply(A[i], B[i]),
+            name="tfhe_int_multiply"
+        )
+    )</code></pre>
+            </section>
+
+            <section id="batch-operations">
+                <h3>2. Batch Operations</h3>
+                <pre data-language="C++" class="cpp"><code>class BatchedIntegerOps {
+public:
+    // Batched addition
+    Ciphertext BatchAdd(
+        const std::vector<Ciphertext>& inputs
+    ) {
+        return ExecuteBatched(
+            inputs,
+            [](auto& a, auto& b) { return Add(a, b); }
+        );
+    }
+    
+    // Batched multiplication
+    Ciphertext BatchMultiply(
+        const std::vector<Ciphertext>& inputs,
+        bool need_bootstrap
+    ) {
+        auto result = ExecuteBatched(
+            inputs,
+            [](auto& a, auto& b) { return Multiply(a, b); }
+        );
+        
+        if (need_bootstrap) {
+            result = Bootstrap(result);
+        }
+        
+        return result;
+    }
+    
+private:
+    template<typename Op>
+    Ciphertext ExecuteBatched(
+        const std::vector<Ciphertext>& inputs,
+        Op operation
+    ) {
+        // Parallel execution
+        // Noise management
+        // Result aggregation
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="float-layer">
+            <h2>Float Emulation Layer</h2>
+
+            <section id="float-representation">
+                <h3>1. Float Representation</h3>
+                <pre data-language="C++" class="cpp"><code>class TFHEFloat {
+public:
+    struct FloatParams {
+        uint32_t mantissa_bits;
+        uint32_t exponent_bits;
+        bool is_signed;
+    };
+    
+    // Float construction from integers
+    static TFHEFloat FromIntegers(
+        const TFHEInteger& mantissa,
+        const TFHEInteger& exponent,
+        const FloatParams& params
+    ) {
+        // Construct float representation
+        // Manage precision
+        // Handle normalization
+    }
+    
+    // Basic operations
+    TFHEFloat Add(const TFHEFloat& other) {
+        // Align exponents
+        // Add mantissas
+        // Normalize result
+    }
+    
+    TFHEFloat Multiply(const TFHEFloat& other) {
+        // Multiply mantissas
+        // Add exponents
+        // Handle normalization
+    }
+};</code></pre>
+            </section>
+
+            <section id="conversion">
+                <h3>2. Conversion Operations</h3>
+                <pre data-language="C++" class="cpp"><code>class TypeConverter {
+public:
+    // Integer to float conversion
+    TFHEFloat IntToFloat(
+        const TFHEInteger& input,
+        const TFHEFloat::FloatParams& params
+    ) {
+        // Extract sign
+        // Convert magnitude
+        // Create float representation
+    }
+    
+    // Float to integer conversion
+    TFHEInteger FloatToInt(
+        const TFHEFloat& input,
+        const TFHEInteger::Parameters& params
+    ) {
+        // Extract mantissa
+        // Apply exponent
+        // Round result
+    }
+    
+private:
+    // Helper functions
+    TFHEInteger ExtractMantissa(const TFHEFloat& input) {
+        // Extract mantissa bits
+        // Handle normalization
+    }
+    
+    TFHEInteger ExtractExponent(const TFHEFloat& input) {
+        // Extract exponent bits
+        // Handle bias
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="optimizations">
+            <h2>Performance Optimizations</h2>
+
+            <section id="integer-optimizations">
+                <h3>1. Integer-Specific Optimizations</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Integer Optimization] --> B[Direct Operations]
+                    A --> C[Batch Processing]
+                    A --> D[Hardware Acceleration]
+                    
+                    B --> E[No Conversion Overhead]
+                    B --> F[Reduced Noise Growth]
+                    
+                    C --> G[Parallel Execution]
+                    C --> H[Memory Efficiency]
+                    
+                    D --> I[SIMD Operations]
+                    D --> J[Custom Hardware]
+                </div>
+            </section>
+
+            <section id="implementation">
+                <h3>2. Implementation Strategy</h3>
+                <pre data-language="Python" class="python"><code>class IntegerOptimizer:
+    def __init__(self):
+        self.strategies = {
+            "direct": self.optimize_direct,
+            "batched": self.optimize_batched,
+            "hardware": self.optimize_hardware
+        }
+    
+    def optimize_direct(self, op):
+        """
+        Optimize direct integer operations
+        - No type conversion needed
+        - Reduced noise management
+        - Direct hardware mapping
+        """
+        pass
+    
+    def optimize_batched(self, op):
+        """
+        Optimize batched operations
+        - Parallel execution
+        - Memory layout optimization
+        - Noise management
+        """
+        pass
+    
+    def optimize_hardware(self, op):
+        """
+        Hardware-specific optimizations
+        - SIMD utilization
+        - Memory access patterns
+        - Custom hardware features
+        """
+        pass</code></pre>
+            </section>
+        </section>
+
+        <section id="hardware">
+            <h2>Hardware Acceleration</h2>
+
+            <section id="integer-hardware">
+                <h3>1. Integer-Optimized Hardware</h3>
+                <pre data-language="C++" class="cpp"><code>class IntegerHardwareBackend {
+public:
+    // Direct integer operations
+    void ExecuteInteger(
+        const Operation& op,
+        const TFHEInteger& input
+    ) {
+        if (CanUseDirectHardware(op)) {
+            ExecuteOnHardware(op, input);
+        } else {
+            ExecuteFallback(op, input);
+        }
+    }
+    
+    // Batch operations
+    void ExecuteBatch(
+        const Operation& op,
+        const std::vector<TFHEInteger>& inputs
+    ) {
+        // Parallel execution
+        // Hardware resource allocation
+        // Result aggregation
+    }
+    
+private:
+    bool CanUseDirectHardware(const Operation& op) {
+        // Check operation support
+        // Verify hardware availability
+        // Check resource requirements
+    }
+};</code></pre>
+            </section>
+
+            <section id="memory">
+                <h3>2. Memory Management</h3>
+                <pre data-language="C++" class="cpp"><code>class IntegerMemoryManager {
+public:
+    // Efficient integer storage
+    void* AllocateInteger(
+        size_t size,
+        const TFHEInteger::Parameters& params
+    ) {
+        // Align for hardware
+        // Optimize access pattern
+        // Manage memory pool
+    }
+    
+    // Batch memory management
+    void* AllocateBatch(
+        size_t num_elements,
+        size_t element_size
+    ) {
+        // Contiguous allocation
+        // Hardware-friendly layout
+        // Access optimization
+    }
+};</code></pre>
+            </section>
+        </section>
+
+        <section id="benefits">
+            <h2>Integration Benefits</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">Performance Advantages</div>
+                    <ul>
+                        <li>Direct integer operations</li>
+                        <li>No conversion overhead</li>
+                        <li>Efficient hardware utilization</li>
+                        <li>Better noise management</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Memory Efficiency</div>
+                    <ul>
+                        <li>Smaller ciphertext size</li>
+                        <li>Better cache utilization</li>
+                        <li>Reduced memory transfers</li>
+                        <li>Optimized layouts</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Hardware Acceleration</div>
+                    <ul>
+                        <li>Direct hardware mapping</li>
+                        <li>SIMD optimization</li>
+                        <li>Custom hardware features</li>
+                        <li>Parallel execution</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Operational Benefits</div>
+                    <ul>
+                        <li>Simplified bootstrapping</li>
+                        <li>Better noise characteristics</li>
+                        <li>Reduced complexity</li>
+                        <li>Higher precision</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="considerations">
+            <h2>Implementation Considerations</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">Type System</div>
+                    <ul>
+                        <li>Native integer support</li>
+                        <li>Clear type boundaries</li>
+                        <li>Efficient conversion</li>
+                        <li>Type safety</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Operation Optimization</div>
+                    <ul>
+                        <li>Direct execution paths</li>
+                        <li>Batch processing</li>
+                        <li>Hardware mapping</li>
+                        <li>Resource utilization</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Memory Management</div>
+                    <ul>
+                        <li>Efficient layouts</li>
+                        <li>Hardware alignment</li>
+                        <li>Pool management</li>
+                        <li>Access patterns</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-title">Hardware Integration</div>
+                    <ul>
+                        <li>Direct mapping</li>
+                        <li>Resource allocation</li>
+                        <li>Feature utilization</li>
+                        <li>Performance optimization</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize mermaid with dark theme
+        mermaid.initialize({
+            theme: 'dark',
+            themeVariables: {
+                fontFamily: 'Courier New',
+                primaryColor: '#ff3333',
+                primaryTextColor: '#f0f0f0',
+                primaryBorderColor: '#333',
+                lineColor: '#f0f0f0',
+                secondaryColor: '#1a1a1a',
+                tertiaryColor: '#0a0a0a'
+            },
+            flowchart: {
+                curve: 'basis',
+                diagramPadding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 40,
+                htmlLabels: true,
+                useMaxWidth: true,
+                width: '100%'
+            }
+        });
+
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((block) => {
+            const language = block.parentElement.getAttribute('data-language').toLowerCase();
+            block.classList.add(language);
+        });
+    </script>
+</body>
+</html>
